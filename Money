@@ -32,7 +32,7 @@
         statusText.Position = UDim2.new(0.3, 0, 0.47, 0)
         statusText.Text = "💸 INFINITE MONEY ACTIVATED 💸"
         statusText.TextScaled = true
-        statusText.BackgroundTransparency = 1
+        statusText.BackgroundTransparency = 0
         statusText.TextColor3 = Color3.fromRGB(255, 215, 0) 
         statusText.Font = Enum.Font.GothamBold
         statusText.Parent = mainFrame
@@ -45,7 +45,7 @@
     
         local originalCF = character:GetPivot()
         getgenv().SwimMethod = true
-        task.wait(0.5)
+        task.wait(0.4)
         character:PivotTo(CFrame.new(-49, 287, -338))
         getgenv().SwimMethod = false
         for _, v in pairs(game.Workspace:GetDescendants()) do
