@@ -17,7 +17,7 @@
         local mainFrame = Instance.new("Frame")
         mainFrame.Size = UDim2.new(1, 0, 1, 0)
         mainFrame.BackgroundColor3 = Color3.new(0, 0, 0)
-        mainFrame.BackgroundTransparency = 0
+        mainFrame.BackgroundTransparency = 1
         mainFrame.Parent = overlay
 
         local gradient = Instance.new("UIGradient")
@@ -32,7 +32,7 @@
         statusText.Position = UDim2.new(0.3, 0, 0.47, 0)
         statusText.Text = "💸 INFINITE MONEY ACTIVATED 💸"
         statusText.TextScaled = true
-        statusText.BackgroundTransparency = 0
+        statusText.BackgroundTransparency = 1
         statusText.TextColor3 = Color3.fromRGB(255, 215, 0) 
         statusText.Font = Enum.Font.GothamBold
         statusText.Parent = mainFrame
@@ -47,7 +47,7 @@
         getgenv().SwimMethod = true
         task.wait(0.5)
         character:PivotTo(CFrame.new(-49, 287, -338))
-        getgenv().SwimMethod = false
+
         for _, v in pairs(game.Workspace:GetDescendants()) do
             if v:IsA("ProximityPrompt") then
                 v.HoldDuration = 0
