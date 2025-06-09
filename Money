@@ -56,12 +56,7 @@
         end
     
         local prompt = workspace["IceFruit Sell"]:FindFirstChildOfClass("ProximityPrompt")
-        if prompt then
-            for _, part in pairs(character:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.Anchored = true
-                end
-            end
+
             
             fireproximityprompt(prompt, 1, true)
             fireproximityprompt(prompt, 1, true)
