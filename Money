@@ -45,7 +45,7 @@
     
         local originalCF = character:GetPivot()
         getgenv().SwimMethod = true
-        task.wait(0.5)
+        task.wait(1)
         character:PivotTo(CFrame.new(-49, 287, -338))
 
         for _, v in pairs(game.Workspace:GetDescendants()) do
@@ -364,5 +364,4 @@
             character:PivotTo(originalCF)
             task.wait(1)
             getgenv().SwimMethod = false
-        end
         return
