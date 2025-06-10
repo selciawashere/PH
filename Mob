@@ -3,9 +3,9 @@
 -- Infinite Money (Takes 2-3 Minutes)
 -- BYPASSED ANTICHEAT 
 -- ADDED FLY (BYPASSED)
-local repo = 'https://raw.githubusercontent.com/selciawashere/ProximityHub/refs/heads/main/UILIBMobile'
-local themeManagerRepo = 'https://raw.githubusercontent.com/selciawashere/ProximityHub/refs/heads/main/ThemeManagerMobile'
-local saveManagerRepo = 'https://raw.githubusercontent.com/selciawashere/ProximityHub/refs/heads/main/SaveManagerMobile'
+local repo = 'https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/UILIBMobile'
+local themeManagerRepo = 'https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/ThemeManagerMobile'
+local saveManagerRepo = 'https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/SaveManagerMobile'
 
 print("Mobile UI Loaded")
 
