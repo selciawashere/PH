@@ -11,8 +11,8 @@ local repo = game:GetService("UserInputService").TouchEnabled or game:GetService
 print(repo:match("Mobile") and "Mobile Loaded" or "PC Loaded")
 
 local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
-local ThemeManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/selciawashere/ProximityHub/refs/heads/main/ThemeManager'))()
-local SaveManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/selciawashere/ProximityHub/refs/heads/main/SaveManager'))()
+local ThemeManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/ThemeManager'))()
+local SaveManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/SaveManager'))()
 local Window = Library:CreateWindow({
     Title = 'Proximity Hub [V.1.0.1]| Tha Bronx 3 | ' .. (identifyexecutor and identifyexecutor() or "Unknown"),
     Center = true,
