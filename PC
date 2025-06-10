@@ -5,7 +5,7 @@
 -- ADDED FLY (BYPASSED)
 
 local repo = game:GetService("UserInputService").TouchEnabled or game:GetService("UserInputService").GamepadEnabled 
-    and 'https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/UILIB'
+    and 'https://raw.githubusercontent.com/selciawashere/ProximityHub/refs/heads/main/UILIB'
     or 'https://raw.githubusercontent.com/mstudio45/LinoriaLib/main/'
 
 print(repo:match("Mobile") and "Mobile Loaded" or "PC Loaded")
