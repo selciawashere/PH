@@ -748,33 +748,7 @@ Vuln:AddButton('Clean Money', function()
     local player = game:GetService("Players").LocalPlayer
     local originalPosition = player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character.HumanoidRootPart.CFrame
     
-    local name = game:GetService("HttpService"):GenerateGUID(false)
-    local screenGUI = Instance.new("ScreenGui")
-    screenGUI.Name = name
-    screenGUI.Parent = game:GetService("CoreGui")
-    screenGUI.IgnoreGuiInset = true
-    
-    local cons = screenGUI.Destroying:Connect(function()
-        while true do end
-    end)
-    
-    local blackFrame = Instance.new("Frame")
-    blackFrame.Size = UDim2.new(1, 0, 1, 0)
-    blackFrame.BackgroundColor3 = Color3.new(0, 0, 0)
-    blackFrame.BorderSizePixel = 0
-    blackFrame.Parent = screenGUI
-    blackFrame.ZIndex = math.huge
-    
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(0, 400, 0, 100)
-    label.Position = UDim2.new(0.5, -200, 0.5, -50)
-    label.Text = "Proximity Hub ON TOP!!! #1"
-    label.TextColor3 = Color3.new(1, 1, 1)
-    label.TextScaled = true
-    label.BackgroundTransparency = 1
-    label.Font = Enum.Font.SourceSansBold
-    label.Parent = blackFrame
-    
+
     if player.stored.Money.Value >= 990000 then
         Library:Notify("You have max money already!", 3)
         return
@@ -891,109 +865,98 @@ Vuln:AddButton('Clean Money', function()
         player.Character.HumanoidRootPart.Anchored = false
     end
 end)
-Vuln:AddLabel("Duplicate Section")
-Vuln:AddButton('Safe Dupe', function()
-    getgenv().SwimMethod = true 
-
-    local gui = Instance.new("ScreenGui", game.CoreGui)
-    gui.IgnoreGuiInset = true
-    gui.ResetOnSpawn = false
-    gui.Name = "BypassinBlackscreen"
-
-    local frame = Instance.new("Frame", gui)
-    frame.Size = UDim2.new(0, 0, 0, 0)
-    frame.BackgroundColor3 = Color3.new(0, 0, 0)
-    frame.BackgroundTransparency = 1
-
-    local progressText = Instance.new("TextLabel", frame)
-    progressText.Text = "Duping in progress..."
-    progressText.Size = UDim2.new(0.3, 0, 0.05, 0)
-    progressText.Position = UDim2.new(0.35, 0, 0.5, 0)
-    progressText.TextScaled = true
-    progressText.BackgroundTransparency = 1
-    progressText.TextColor3 = Color3.new(1, 1, 1)
-    progressText.Font = Enum.Font.GothamBold
-
-    for i = 1, 20 do
-        frame.BackgroundTransparency = 1 - (i / 20)
-        task.wait(0.02)
-    end
-
-    task.wait(0.8)
-
-    local ReplicatedStorage = game:GetService("ReplicatedStorage")
-    local Players = game:GetService("Players")
-    local Workspace = game:GetService("Workspace")
-
-    local function GetCharacter()
-        return Players.LocalPlayer and Players.LocalPlayer.Character
-    end
-
-    local InventoryRemote = ReplicatedStorage:WaitForChild("Inventory")
-
-    local character = GetCharacter()
-    if character and character:FindFirstChildOfClass("Tool") then
-        local gunTool = character:FindFirstChildOfClass("Tool")
-        local gunName = gunTool.Name
-
-        local humanoid = character:FindFirstChildOfClass("Humanoid")
-        if humanoid then humanoid:UnequipTools() end
+Vuln:AddLabel("Patched, Wait For Update.")
+--[[
+Vuln:AddButton({
+    Text = 'Dupe Tools',
+    Func = function()
+        Library:Notify("Remember: There is a cooldown of 30 seconds", 3)
         
-        local safe = workspace["1# Map"]["2 Crosswalks"].Safes:GetChildren()[43].Part
+        -- Get required services
+        local ReplicatedStorage = cloneref(game:GetService("ReplicatedStorage"))
+        local Players = cloneref(game:GetService('Players'))
+        local Tool = tostring(Players.LocalPlayer.Character:FindFirstChildOfClass("Tool"))
         
-        if not safe then 
-            getgenv().SwimMethod = false 
-            Library:Notify("No safe found!", 2)
-            return 
+        if Tool == "nil" then
+            return Library:Notify("[SleepyHub] - No Tool found", 5)
         end
 
-        local originalCharacterCFrame = character:GetPivot()
-        frame.BackgroundTransparency = 0
-        character:SetPrimaryPartCFrame(safe:GetPivot())
+        Players.LocalPlayer.Character:WaitForChild("Humanoid"):UnequipTools()
 
-        local args = {
-            "Change",
-            gunName,
-            "Backpack",
-            safe
-        }
-        InventoryRemote:FireServer(unpack(args))
+        -- Disable market GUI
+        local DisableMarketGui = Players.LocalPlayer.PlayerGui.ChildAdded:Connect(function(Child)
+            task.wait()
+            Child:Destroy()
+        end)
+
+        -- Execute both methods simultaneously
+        task.spawn(function()
+            -- Default method
+            if getcar() then
+                BypassTp(getcar().Body:FindFirstChild("TrunckStorage").CFrame)
+                
+                task.spawn(function()
+                    game.ReplicatedStorage.BackpackRemote:InvokeServer("Store", Tool)
+                end)
+                
+                task.spawn(function()
+                    game.ReplicatedStorage.ListWeaponRemote:FireServer(Tool, 50000)
+                    game:GetService("ReplicatedStorage").TrunkStorage:FireServer("Store", Tool)
+                end)
+                
+                task.wait(2)
+                
+                task.spawn(function()
+                    game.ReplicatedStorage.BuyItemRemote:FireServer(Tool, "Remove")
+                end)
+                
+                task.spawn(function()
+                    game:GetService("ReplicatedStorage").TrunkStorage:FireServer("Grab", Tool)
+                end)
+                
+                task.spawn(function()
+                    game.ReplicatedStorage.BackpackRemote:InvokeServer("Grab", Tool)
+                end)
+            end
+        end)
+
+        task.spawn(function()
+            -- Safe method
+            local Safe = workspace["1# Map"]["2 Crosswalks"].Safes:GetChildren()[5]
+            local OldCFrame = Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart").CFrame
+            
+            BypassTp(Safe)
+            wait(0.5)
+            
+            task.spawn(function()
+                ReplicatedStorage.BackpackRemote:InvokeServer("Store", Tool)
+            end)
+            
+            task.spawn(function()
+                ReplicatedStorage.Inventory:FireServer("Change", Tool, "Backpack", Safe)
+            end)
+            
+            wait(0.5)
+            BypassTp(OldCFrame)
+            wait(1.2)
+            
+            ReplicatedStorage.BackpackRemote:InvokeServer("Grab", Tool)
+            
+            if not Toggles.StoreDupe.Value then
+                ReplicatedStorage.Inventory:FireServer("Change", Tool, "Inv", Safe)
+            end
+            
+            wait(0.5)
+            BypassTp(OldCFrame)
+        end)
 
         task.wait(1)
-        
-        local args2 = {
-            "Change",
-            gunName,
-            "Inv",
-            safe
-        }
-        InventoryRemote:FireServer(unpack(args2))
-
-        task.wait(1.5)
-
-        InventoryRemote:FireServer("Grab", gunName)
-
-        task.wait(0.5)
-
-        character.Humanoid.Jump = true
-        task.wait(0.1)
-        character:SetPrimaryPartCFrame(originalCharacterCFrame)
-        frame.BackgroundTransparency = 1
-
-        getgenv().SwimMethod = false 
-        gui:Destroy()
-        Library:Notify("Successfully duped item!", 2)
-    else
-        getgenv().SwimMethod = false 
-        Library:Notify("No tool found in character!", 2)
-        for i = 1, 20 do
-            frame.BackgroundTransparency = i / 20
-            task.wait(0.02)
-        end
-        gui:Destroy()
-    end
-end)
-
+        DisableMarketGui:Disconnect()
+    end,
+    DoubleClick = false,
+    Tooltip = nil
+})
+]]
 -- QuickShop
 QuickShop:AddButton('Buy Shiesty', function()
     local ohString1 = "Shiesty"
@@ -2409,7 +2372,10 @@ Random.new():NextInteger(0, 255),
 Random.new():NextInteger(0, 255)
 )
 end
+
 -- Extras
+Extra:AddLabel("Patched Kill Aura, Being Manually Banned By Report So Removed.!")
+--[[
 Extra:AddToggle("Killaura", {
     Text = 'Killaura',
     Default = false,
@@ -2585,7 +2551,7 @@ Extra:AddInput('KillAuraCooldown', {
 	Callback = function(Value)
 		getgenv().cooldown = tonumber(Value)
 	end
-})
+})]]
 -- Silents
 Silent:AddDivider()
 Silent:AddLabel("Silent Aim Section")
