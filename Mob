@@ -865,7 +865,7 @@ Vuln:AddButton('Clean Money', function()
         player.Character.HumanoidRootPart.Anchored = false
     end
 end)
-Vuln:AddLabel("Patched, Wait For Update.")
+Vuln:AddLabel("Dupe Is Currently Patched, Wait For Update.")
 --[[
 Vuln:AddButton({
     Text = 'Dupe Tools',
