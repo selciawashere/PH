@@ -33,7 +33,7 @@ local args = {
 }
 game:GetService("ReplicatedStorage"):WaitForChild("ListWeaponRemote"):FireServer(unpack(args))
 
-task.wait(0.24)
+task.wait(0.26)
 local ReplicatedStorage = cloneref(game:GetService("ReplicatedStorage"))
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
