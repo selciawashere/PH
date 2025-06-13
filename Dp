@@ -8,7 +8,11 @@ end
 task.wait(1)
 local character = game.Players.LocalPlayer.Character
 if not character or not character:FindFirstChildOfClass("Tool") then
-    Library:Notify("No tool equipped!", 3)
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "Error",
+        Text = "No tool equipped!",
+        Duration = 3
+    })
     return
 end
 
