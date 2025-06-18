@@ -116,7 +116,7 @@ local function createDraggableGui()
     local loadingBarFillCorner = Instance.new("UICorner")
     loadingBarFillCorner.CornerRadius = UDim.new(1, 0)
     loadingBarFillCorner.Parent = loadingBar
-    -- Auto Dupe Toggle
+
     local autoDupeToggle = Instance.new("TextButton")
     autoDupeToggle.Size = UDim2.new(0.8, 0, 0, 35)
     autoDupeToggle.Position = UDim2.new(0.1, 0, 0.6, -17.5)
