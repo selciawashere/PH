@@ -3,10 +3,10 @@
 -- Infinite Money (Takes 2-3 Minutes)
 -- BYPASSED ANTICHEAT 
 -- ADDED FLY (BYPASSED)
-local repo = 'https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/UILIBMobile'
 
 print("Mobile UI Loaded")
 
+local repo = 'https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/UILIBMobile'
 
 local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
 local ThemeManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/ThemeManagerMobile'))()
