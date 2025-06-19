@@ -6,9 +6,8 @@
 
 print("Mobile UI Loaded")
 
-local repo = 'https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/UILIBMobile'
 
-local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
+local Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/UILIBMobile'))()
 local ThemeManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/ThemeManagerMobile'))()
 local SaveManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/SaveManagerMobile'))()
 local Window = Library:CreateWindow({
