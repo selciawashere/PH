@@ -34,6 +34,7 @@ local ATMBank = Tabs.Main:AddLeftGroupbox('ATM / Bank')
 local Teleports = Tabs.Main:AddLeftGroupbox("Teleport")
 local Vuln = Tabs.Main:AddRightGroupbox("Vulnerabilities")
 local QuickShop = Tabs.Main:AddRightGroupbox('Quick Shops')
+local QuickOutfits = Tabs.Main:AddRightGroupbox('Quick Outfits')
 local ShopGui = Tabs.Main:AddLeftGroupbox("Shop Gui's")
 
 local AutofarmS = Tabs.Autofarm:AddLeftGroupbox("Auto Farm Money")
@@ -786,9 +787,9 @@ Vuln:AddButton('Clean Money', function()
         
         repeat
             game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.E, false, game)
-            task.wait(0.1)
+            task.wait(1)
             game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.E, false, game)
-            task.wait(0.1)
+            task.wait(1)
         until WaitForItem("MoneyReady")
         if player.Character then
             task.spawn(function()
@@ -813,9 +814,9 @@ Vuln:AddButton('Clean Money', function()
         
         repeat
             game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.E, false, game)
-            task.wait(0.1)
+            task.wait(1)
             game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.E, false, game)
-            task.wait(0.1)
+            task.wait(1)
         until WaitForItem("BagOfMoney")
         task.wait(2)
         if player.Character then
@@ -846,16 +847,16 @@ Vuln:AddButton('Clean Money', function()
     repeat
         if not stopPressingE then
             game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.E, false, game)
-            task.wait(0.1)
+            task.wait(1)
             game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.E, false, game)
-            task.wait(0.1)
+            task.wait(1)
         end
         
         if not WaitForItem("BagOfMoney") then
             stopPressingE = true
         end
         
-        if tick() - startTime > 5 then
+        if tick() - startTime > 10 then
             break
         end
     until stopPressingE
@@ -865,99 +866,12 @@ Vuln:AddButton('Clean Money', function()
         player.Character.HumanoidRootPart.Anchored = false
     end
 end)
-Vuln:AddLabel("Dupe Is Currently Patched, Wait For Update.")
---[[
-Vuln:AddButton({
-    Text = 'Dupe Tools',
-    Func = function()
-        Library:Notify("Remember: There is a cooldown of 30 seconds", 3)
-        
-        -- Get required services
-        local ReplicatedStorage = cloneref(game:GetService("ReplicatedStorage"))
-        local Players = cloneref(game:GetService('Players'))
-        local Tool = tostring(Players.LocalPlayer.Character:FindFirstChildOfClass("Tool"))
-        
-        if Tool == "nil" then
-            return Library:Notify("[SleepyHub] - No Tool found", 5)
-        end
+Vuln:AddLabel("Dupe Patched, Wait For Update.")
 
-        Players.LocalPlayer.Character:WaitForChild("Humanoid"):UnequipTools()
 
-        -- Disable market GUI
-        local DisableMarketGui = Players.LocalPlayer.PlayerGui.ChildAdded:Connect(function(Child)
-            task.wait()
-            Child:Destroy()
-        end)
 
-        -- Execute both methods simultaneously
-        task.spawn(function()
-            -- Default method
-            if getcar() then
-                BypassTp(getcar().Body:FindFirstChild("TrunckStorage").CFrame)
-                
-                task.spawn(function()
-                    game.ReplicatedStorage.BackpackRemote:InvokeServer("Store", Tool)
-                end)
-                
-                task.spawn(function()
-                    game.ReplicatedStorage.ListWeaponRemote:FireServer(Tool, 50000)
-                    game:GetService("ReplicatedStorage").TrunkStorage:FireServer("Store", Tool)
-                end)
-                
-                task.wait(2)
-                
-                task.spawn(function()
-                    game.ReplicatedStorage.BuyItemRemote:FireServer(Tool, "Remove")
-                end)
-                
-                task.spawn(function()
-                    game:GetService("ReplicatedStorage").TrunkStorage:FireServer("Grab", Tool)
-                end)
-                
-                task.spawn(function()
-                    game.ReplicatedStorage.BackpackRemote:InvokeServer("Grab", Tool)
-                end)
-            end
-        end)
 
-        task.spawn(function()
-            -- Safe method
-            local Safe = workspace["1# Map"]["2 Crosswalks"].Safes:GetChildren()[5]
-            local OldCFrame = Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart").CFrame
-            
-            BypassTp(Safe)
-            wait(0.5)
-            
-            task.spawn(function()
-                ReplicatedStorage.BackpackRemote:InvokeServer("Store", Tool)
-            end)
-            
-            task.spawn(function()
-                ReplicatedStorage.Inventory:FireServer("Change", Tool, "Backpack", Safe)
-            end)
-            
-            wait(0.5)
-            BypassTp(OldCFrame)
-            wait(1.2)
-            
-            ReplicatedStorage.BackpackRemote:InvokeServer("Grab", Tool)
-            
-            if not Toggles.StoreDupe.Value then
-                ReplicatedStorage.Inventory:FireServer("Change", Tool, "Inv", Safe)
-            end
-            
-            wait(0.5)
-            BypassTp(OldCFrame)
-        end)
 
-        task.wait(1)
-        DisableMarketGui:Disconnect()
-    end,
-    DoubleClick = false,
-    Tooltip = nil
-})
-]]
--- QuickShop
 QuickShop:AddButton('Buy Shiesty', function()
     local ohString1 = "Shiesty"
     game:GetService("ReplicatedStorage").ShopRemote:InvokeServer(ohString1)
@@ -1048,6 +962,176 @@ task.spawn(function()
             end
         end
     end
+end)
+
+QuickOutfits:AddButton('Drill Outfit', function()
+    local clothingTypes = {"Shirts", "Hats", "Pants", "Masks", "Glasses", "Shiestys"}
+    for _, clothingType in ipairs(clothingTypes) do
+        local args = {
+            [1] = "Remove",
+            [2] = clothingType
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    end
+
+    local args = {
+        [1] = "Wear",
+        [2] = "Shirts",
+        [3] = "BlackTech"
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    args[1] = "Buy"
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    
+    local args = {
+        [1] = "Wear", 
+        [2] = "Hats",
+        [3] = "CleezyB"
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    args[1] = "Buy"
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    
+    local args = {
+        [1] = "Wear",
+        [2] = "Pants",
+        [3] = "Ripped Black Jeans w White Thunder 4s"
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    args[1] = "Buy"
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    
+    local args = {
+        [1] = "Wear",
+        [2] = "Masks",
+        [3] = "SkullMask"
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    args[1] = "Buy"
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    
+    local args = {
+        [1] = "Wear",
+        [2] = "Glasses",
+        [3] = "DarkShades"
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    args[1] = "Buy"
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    
+    local args = {
+        [1] = "Wear",
+        [2] = "Shiestys",
+        [3] = "RedShiesty"
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    args[1] = "Buy"
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+end)
+
+
+QuickOutfits:AddButton('White Outfit', function()
+    local clothingTypes = {"Shirts", "Hats", "Pants", "Masks", "Glasses", "Shiestys"}
+    for _, clothingType in ipairs(clothingTypes) do
+        local args = {
+            [1] = "Remove",
+            [2] = clothingType
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    end
+    
+    local args = {
+        [1] = "Wear",
+        [2] = "Shirts", 
+        [3] = "Black PalmAngel Jacket"
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    args[1] = "Buy"
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    
+    local args = {
+        [1] = "Wear",
+        [2] = "Pants",
+        [3] = "Black PalmAngels" 
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    args[1] = "Buy"
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    
+    local args = {
+        [1] = "Wear",
+        [2] = "Masks",
+        [3] = "MacReddy"
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    args[1] = "Buy"
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    
+    local args = {
+        [1] = "Wear",
+        [2] = "Hats",
+        [3] = "CleezyB"
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    args[1] = "Buy"
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    
+    local args = {
+        [1] = "Wear",
+        [2] = "Glasses",
+        [3] = "BluShades"
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    args[1] = "Buy"
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+end)
+
+QuickOutfits:AddButton('Spider Man Outfit', function()
+    local clothingTypes = {"Shirts", "Hats", "Pants", "Masks", "Glasses", "Shiestys"}
+    for _, clothingType in ipairs(clothingTypes) do
+        local args = {
+            [1] = "Remove",
+            [2] = clothingType
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    end
+
+    local args = {
+        [1] = "Wear",
+        [2] = "Shirts",
+        [3] = "Spiderman"
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    args[1] = "Buy"
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    
+    
+    local args = {
+        [1] = "Wear",
+        [2] = "Pants",
+        [3] = "Spiderman"
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    args[1] = "Buy"
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    
+    local args = {
+        [1] = "Wear",
+        [2] = "Shiestys",
+        [3] = "RedShiesty"
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    args[1] = "Buy"
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    
+    local args = {
+        [1] = "Wear",
+        [2] = "Glasses",
+        [3] = "BlueShades"
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
+    args[1] = "Buy"
+    game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
 end)
 -- Autofarmss
 AutofarmS:AddToggle('StudioAutofarm', {
@@ -1147,7 +1231,238 @@ AutofarmS:AddToggle('StudioAutofarm', {
         end
     end
 })
+AutofarmS:AddToggle("DeliJobAutofarm", {
+    Text = "Deli Job Autofarm",
+    Default = false,
+    Callback = function(State)
+        getgenv().DeliJobAutofarmEnabled = State
+        if State then
+            task.spawn(function()
+                local LocalPlayer = Players.LocalPlayer
+                local character = LocalPlayer.Character
+                if not character then task.wait(0.1) return end
+                
+                local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+                if not humanoidRootPart then task.wait(0.1) return end
+                
+                local startJob = workspace.DeliJob.Start
+                if startJob then
+                    getgenv().SwimMethod = true
+                    task.wait(0.5)
+                    humanoidRootPart.CFrame = startJob.CFrame
+                    getgenv().SwimMethod = false
+                    task.wait(0.5)
+                    
+                    local startPrompt = startJob:FindFirstChild("Prompt")
+                    if startPrompt then
+                        for i = 1, 1 do
+                            pcall(function()
+                                fireproximityprompt(startPrompt)
+                            end)
+                            task.wait(0.1)
+                        end
+                    end
+                end
+                
+                task.wait(1)
+                
+                while getgenv().DeliJobAutofarmEnabled do
+                    local LocalPlayer = Players.LocalPlayer
+                    local character = LocalPlayer.Character
+                    if not character then task.wait(0.1) continue end
+                    
+                    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+                    if not humanoidRootPart then task.wait(0.1) continue end
+                    
+                    local grabPrompt = workspace.DeliJob.GrabIngridence
+                    if grabPrompt then
+                        task.wait(0.5)
+                        humanoidRootPart.CFrame = grabPrompt.CFrame
+                        task.wait(0.5)
+                        
+                        local prompt = grabPrompt:FindFirstChild("Prompt")
+                        if prompt then
+                            for i = 1, 1 do
+                                pcall(function()
+                                    fireproximityprompt(prompt)
+                                end)
+                                task.wait(0.1)
+                            end
+                        end
+                    end
+                    
+                    task.wait(1)
+                    
+                    local rawCheese = character:FindFirstChild("RawChopCheese")
+                    if not rawCheese then
+                        task.wait(1)
+                        continue
+                    end
+                    
+                    task.wait(1)
+                    
+                    local grills = workspace.DeliJob.Grills:GetChildren()
+                    if grills[5] then
+                        local grillSmoke = grills[5]:FindFirstChild("GrillSmoke")
+                        if grillSmoke then
+                            task.wait(0.5)
+                            humanoidRootPart.CFrame = grillSmoke.CFrame
+                            task.wait(0.5)
+                            
+                            local cookPrompt = grillSmoke:FindFirstChild("Prompt")
+                            if cookPrompt then
+                                for i = 1, 1 do
+                                    pcall(function()
+                                        fireproximityprompt(cookPrompt)
+                                    end)
+                                    task.wait(0.1)
+                                end
+                            end
+                        end
+                    end
+                    
+                    while getgenv().DeliJobAutofarmEnabled do
+                        local cookedCheese = character:FindFirstChild("ChopCheese")
+                        if cookedCheese then
+                            local sellArea = workspace.DeliJob.Sell
+                            if sellArea then
+                                task.wait(0.5)
+                                humanoidRootPart.CFrame = sellArea.CFrame
+                                task.wait(0.5)
+                                
+                                local sellPrompt = sellArea:FindFirstChild("Prompt")
+                                if sellPrompt then
+                                    for i = 1, 5 do
+                                        pcall(function()
+                                            fireproximityprompt(sellPrompt)
+                                        end)
+                                        task.wait(0.1)
+                                    end
+                                end
+                            end
+                            break
+                        end
+                        
+                        local grills = workspace.DeliJob.Grills:GetChildren()
+                        if grills[5] then
+                            local grillSmoke = grills[5]:FindFirstChild("GrillSmoke")
+                            if grillSmoke then
+                                task.wait(0.5)
+                                humanoidRootPart.CFrame = grillSmoke.CFrame
+                                task.wait(0.5)
+                                
+                                local cookPrompt = grillSmoke:FindFirstChild("Prompt")
+                                if cookPrompt then
+                                    pcall(function()
+                                        fireproximityprompt(cookPrompt)
+                                    end)
+                                end
+                            end
+                        end
+                        
+                        task.wait(1)
+                        task.wait(1)
+                    end
+                    
+                    task.wait(2)
+                end
+            end)
+        else
+            task.spawn(function()
+                local LocalPlayer = Players.LocalPlayer
+                local character = LocalPlayer.Character
+                if not character then return end
+                
+                local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+                if not humanoidRootPart then return end
+                
+                local originalPosition = humanoidRootPart.CFrame
+                
+                local startJob = workspace.DeliJob.Start
+                if startJob then
+                    getgenv().SwimMethod = true
+                    task.wait(0.5)
+                    humanoidRootPart.CFrame = startJob.CFrame
+                    getgenv().SwimMethod = false
+                    task.wait(0.5)
+                    
+                    local startPrompt = startJob:FindFirstChild("Prompt")
+                    if startPrompt then
+                        for i = 1, 1 do
+                            pcall(function()
+                                fireproximityprompt(startPrompt)
+                            end)
+                            task.wait(0.1)
+                        end
+                    end
+                end
+                
+                task.wait(0.5)
+                
+                if originalPosition then
+                    getgenv().SwimMethod = true
+                    task.wait(0.5)
+                    humanoidRootPart.CFrame = originalPosition
+                    getgenv().SwimMethod = false
+                end
+            end)
+        end
+    end
+})
+AutofarmS:AddToggle('JanitorFarm', {
+    Text = 'Janitor Auto Farm',
+    Default = false,
+    Tooltip = 'Automatically farms janitor dust',
+    Callback = function(Value)
+        if Value then
+            local hasMop = player.Backpack:FindFirstChild("Mop") or player.Character:FindFirstChild("Mop")
+            if not hasMop then
+                char:PivotTo(CFrame.new(-382, 254, -1102))
+                task.wait(2)
+                fireproximityprompt(bucket.ProxPart.Prompt)
+            end
+            
+            janitorLoop = task.spawn(function()
+                while Toggles.JanitorFarm.Value do
+                    local mop = player.Backpack:FindFirstChild("Mop") or player.Character:FindFirstChild("Mop")
+                    if mop and not player.Character:FindFirstChild("Mop") then
+                        player.Character.Humanoid:EquipTool(mop)
+                        task.wait(0.2)
+                    end
 
+                    for _, obj in ipairs(workspace:GetChildren()) do
+                        if obj:FindFirstChild("Dust") then
+                            for _, dust in ipairs(obj:GetChildren()) do
+                                if dust.Name == "Dust" and dust:FindFirstChild("Attachment") then
+                                    char:PivotTo(dust.CFrame)
+                                    fireproximityprompt(dust.Attachment.Prompt)
+                                end
+                            end
+                        end
+                        if obj:FindFirstChild("Pile") then
+                            if obj.Pile:FindFirstChild("Attachment") then
+                                char:PivotTo(obj.Pile.CFrame)
+                                fireproximityprompt(obj.Pile.Attachment.Prompt)
+                            end
+                        end
+                    end
+                    task.wait(1)
+                end
+            end)
+        else
+            if janitorLoop then
+                task.cancel(janitorLoop)
+                janitorLoop = nil
+            end
+        end
+    end
+}):AddKeyPicker('JanitorKey', {
+    Default = '',
+    SyncToggleState = true,
+    Mode = 'Toggle', 
+    Text = 'Auto Farm Janitor',
+    NoUI = false,
+})
 -- Playerrs
 Playerr:AddSlider("FlySpeedSlider", {
     Text = "Fly Speed",
