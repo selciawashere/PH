@@ -3070,6 +3070,36 @@ GunMods:AddButton('Gun Knockback', function()
     require(game.Players.LocalPlayer.Character:FindFirstChildOfClass("Tool").Setting).Knockback = 20
 end)
 
+GunMods:AddButton('Rainbow Gun (Equipped)', function()
+    local Players = game:GetService("Players")
+    local LocalPlayer = Players.LocalPlayer
+    local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local Humanoid = Character:WaitForChild("Humanoid")
+    
+    local function makeRainbow()
+        local hue = 0
+        while true do
+            hue = (hue + 1) % 360
+            local color = Color3.fromHSV(hue/360, 1, 1)
+            
+            local equippedTool = Humanoid:FindFirstChild("Animator") and Character:FindFirstChildOfClass("Tool")
+            if equippedTool and equippedTool:FindFirstChild("Model") then
+                local toolModel = equippedTool.Model
+                
+                for _, child in pairs(toolModel:GetDescendants()) do
+                    if child:IsA("BasePart") or child:IsA("MeshPart") then
+                        child.Color = color
+                    end
+                end
+            end
+            
+            task.wait(0.05)
+        end
+    end
+    
+    coroutine.wrap(makeRainbow)()
+end)
+
 
 local madeByLabel = MenuGroup:AddLabel('Made by: dragoniets')
 
