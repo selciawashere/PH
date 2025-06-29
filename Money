@@ -61,17 +61,6 @@
             fireproximityprompt(prompt, 1, true)
              fireproximityprompt(prompt, 1, true)
             fireproximityprompt(prompt, 1, true)
-            fireproximityprompt(prompt, 1, true)
-             fireproximityprompt(prompt, 1, true)
-            fireproximityprompt(prompt, 1, true)
-            fireproximityprompt(prompt, 1, true)
-             fireproximityprompt(prompt, 1, true)
-            fireproximityprompt(prompt, 1, true)
-            fireproximityprompt(prompt, 1, true)
-             fireproximityprompt(prompt, 1, true)
-            fireproximityprompt(prompt, 1, true)
-            fireproximityprompt(prompt, 1, true)
- 
             for i = 1, 1000 do
                 for j = 1, 50 do
                     fireproximityprompt(prompt, 1, true)
@@ -79,7 +68,7 @@
                 task.wait(0.01)
             end
     
-            task.wait(2)
+            task.wait(1)
     
             for _, part in pairs(character:GetDescendants()) do
                 if part:IsA("BasePart") then
@@ -93,7 +82,7 @@
             fadeTween:Play()
             fadeTween.Completed:Wait()
             overlay:Destroy()
-            task.wait(2)
+            task.wait(1)
             getgenv().SwimMethod = true
             character:PivotTo(originalCF)
             task.wait(1)
