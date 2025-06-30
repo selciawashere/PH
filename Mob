@@ -2302,6 +2302,117 @@ VisualsTab:AddToggle('FullbrightToggle', {
 
 
 
+local Lighting = game:GetService("Lighting")
+
+local mintAmbientRGB = Color3.fromRGB(61, 180, 136)
+local mintBackgroundRGB = Color3.fromRGB(28, 28, 28) 
+local mintOutlineRGB = Color3.fromRGB(55, 55, 55)
+
+local currentAmbientColor = mintAmbientRGB
+local isAmbientColorEnabled = false
+
+local ambientToggle = VisualsTab:AddToggle('EnableAmbientColor', {
+    Text = 'Enable Ambient Color',
+    Default = false,
+    Callback = function(Value)
+        isAmbientColorEnabled = Value
+        Lighting.Ambient = Value and currentAmbientColor or Color3.fromRGB(127, 127, 127)
+    end
+}):AddColorPicker('AmbientColorPicker', {
+    Default = currentAmbientColor,
+    Title = 'Choose Ambient Color',
+    Callback = function(Value)
+        currentAmbientColor = Value
+        if isAmbientColorEnabled then
+            Lighting.Ambient = Value
+        end
+    end
+})
+
+local currentFogColor = mintBackgroundRGB
+local isFogColorEnabled = false
+
+VisualsTab:AddToggle('FogColor', {
+    Text = 'Fog Color ',
+    Default = false,
+    Callback = function(Value)
+        isFogColorEnabled = Value
+        Lighting.FogColor = Value and currentFogColor or Color3.fromRGB(255, 255, 255)
+        Lighting.FogEnd = Value and 100 or 0
+    end
+}):AddColorPicker('FogColorPicker', {
+    Default = currentFogColor,
+    Title = 'Choose Fog Color',
+    Callback = function(Value)
+        currentFogColor = Value
+        if isFogColorEnabled then
+            Lighting.FogColor = Value
+        end
+    end
+})
+
+local colorCorrection = Instance.new("ColorCorrectionEffect")
+colorCorrection.Brightness = 0
+colorCorrection.Contrast = 0
+colorCorrection.Saturation = 0
+colorCorrection.Parent = Lighting
+
+local currentSaturation = 100
+local isSaturationEnabled = false
+
+VisualsTab:AddToggle('Saturation', {
+    Text = 'Saturation',
+    Default = false,
+    Callback = function(Value)
+        isSaturationEnabled = Value
+        colorCorrection.Saturation = Value and currentSaturation / 100 or 0
+    end
+})
+
+VisualsTab:AddSlider('SaturationLevel', {
+    Text = 'Saturation Level',
+    Default = 100,
+    Min = 0,
+    Max = 200,
+    Rounding = 1,
+    Callback = function(Value)
+        currentSaturation = Value
+        if isSaturationEnabled then
+            colorCorrection.Saturation = Value / 100
+        end
+    end
+})
+
+local currentTime = 12
+local isTimeChangerEnabled = false
+
+VisualsTab:AddToggle('DayTimeChanger', {
+    Text = 'DayTime Changer',
+    Default = false,
+    Callback = function(Value)
+        isTimeChangerEnabled = Value
+        if Value then
+            Lighting:SetMinutesAfterMidnight(currentTime * 60)
+        end
+    end
+})
+
+VisualsTab:AddSlider('Time', {
+    Text = 'Time',
+    Default = 12,
+    Min = 0,
+    Max = 24,
+    Rounding = 0,
+    Callback = function(Value)
+        currentTime = Value
+        if isTimeChangerEnabled then
+            Lighting:SetMinutesAfterMidnight(currentTime * 60)
+        end
+    end
+}) 
+
+
+
 local FOVring = Drawing.new("Circle")
 FOVring.Thickness = 2
 FOVring.Radius = fovRadius
