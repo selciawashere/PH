@@ -1,4 +1,3 @@
-
 -- Started On June 7 2025
 -- Scripted By dragon
 -- Infinite Money (Takes 2-3 Minutes)
@@ -67,6 +66,8 @@ local UserInputService = game:GetService("UserInputService")
 local StarterGui = game:GetService("StarterGui")
 
 
+
+
 local lastDeathPosition = nil
 local autoTPEnabled = false
 local deathConnection
@@ -80,12 +81,10 @@ local smoothing = 1.1
 local predictionFactor = 0.08
 local lockPart = "HumanoidRootPart"
 
-
 _G.AimbotPowerEnabled = false
 _G.AimbotKeyName = "E"
 _G.FOVCircleVisible = false
 _G.RainbowFOV = false
-_G.HeadSize = 1
 _G.Disabled = true
 _G.UseCustomHitbox = true
 _G.HeadSize = 50
@@ -104,8 +103,14 @@ getgenv().hitpart = "Head"
 getgenv().color = Color3.fromRGB(0, 0, 255)
 getgenv().rainbowbeam = false
 
-
+function getRoot(character)
+    return character:FindFirstChild("HumanoidRootPart")
+end
 -- ATMBanks
+local autoDropEnabled = false
+local autoDropThread = nil
+local dropAmount = 100 
+
 ATMBank:AddInput('[Cash Amount]', {
     Default = '[Cash Amount]',
     Numeric = true,
@@ -115,22 +120,59 @@ ATMBank:AddInput('[Cash Amount]', {
     Placeholder = 'Enter cash amount',
     Callback = function(text)
         local amount = tonumber(text)
-        if not amount then print("Invalid input for cash amount.") return end
-        atmbankamount = amount
+        if not amount or amount <= 0 then
+            print("Invalid input for cash amount.")
+            dropAmount = 0
+            return
+        end
+        dropAmount = amount
     end
 })
 
 ATMBank:AddButton('Deposit', function()
-    game:GetService("ReplicatedStorage"):WaitForChild("BankAction"):FireServer("depo", atmbankamount)
+    if dropAmount and dropAmount > 0 then
+        game:GetService("ReplicatedStorage"):WaitForChild("BankAction"):FireServer("depo", dropAmount)
+    else
+        print("Please enter a valid cash amount to deposit.")
+    end
 end)
 
 ATMBank:AddButton('Withdraw', function()
-    game:GetService("ReplicatedStorage"):WaitForChild("BankAction"):FireServer("with", atmbankamount)
+    if dropAmount and dropAmount > 0 then
+        game:GetService("ReplicatedStorage"):WaitForChild("BankAction"):FireServer("with", dropAmount)
+    else
+        print("Please enter a valid cash amount to withdraw.")
+    end
 end)
 
 ATMBank:AddButton('Drop', function()
-    game:GetService("ReplicatedStorage"):WaitForChild("BankProcessRemote"):InvokeServer("Drop", atmbankamount)
+    if dropAmount and dropAmount > 0 then
+        game:GetService("ReplicatedStorage"):WaitForChild("BankProcessRemote"):InvokeServer("Drop", dropAmount)
+    else
+        print("Please enter a valid cash amount to drop.")
+    end
 end)
+
+
+
+ATMBank:AddToggle('Auto Drop', {
+    Text = "Auto Drop Money",
+    Default = false,
+    Callback = function(state)
+        autoDropEnabled = state
+        if autoDropEnabled then
+            print("Auto Drop Enabled")
+            spawn(function()
+                while autoDropEnabled do
+                    game:GetService("ReplicatedStorage"):WaitForChild("BankProcessRemote"):InvokeServer("Drop", dropAmount)
+                    wait(1)
+                end
+            end)
+        else
+            print("Auto Drop Disabled")
+        end
+    end
+})
 
 -- ShopGuis
 
@@ -393,82 +435,118 @@ Teleports:AddDropdown('GunShopDropdown', {
 })
 
 local SelectedPlayer
+local SelectedPlayerName = nil
 
-local function updatePlayerList()
-    local players = {}
-    for _, player in pairs(game.Players:GetPlayers()) do
+local function findPlayerByPartialName(partial)
+    if not partial or partial == "" then return nil end
+    partial = string.lower(partial)
+    for _, player in ipairs(game.Players:GetPlayers()) do
         if player ~= game.Players.LocalPlayer then
-            table.insert(players, player.Name)
+            if string.sub(string.lower(player.Name), 1, #partial) == partial then
+                return player
+            end
         end
     end
-    return players
+    return nil
 end
 
-local function findPlayer(playerName)
-    SelectedPlayer = game.Players:FindFirstChild(playerName)
-    if not SelectedPlayer then
-        Library:Notify("Player not found!", 3)
-    end
-end
-local playerDropdown = Teleports:AddDropdown('PlayerDropdown', {
-    Values = updatePlayerList(), 
+Teleports:AddInput('PlayerTextbox', {
     Default = "",
-    Multi = false,
-    Text = 'Select Player',
-    Callback = function(selectedPlayer)
-        findPlayer(selectedPlayer) 
+    Numeric = false,
+    Finished = true,
+    Text = 'Enter Player Username',
+    Tooltip = "Type part of the username, e.g. 'noob' for 'NoobMaster69'",
+    Placeholder = 'Enter username',
+    Callback = function(text)
+        SelectedPlayerName = text
+        if text and text ~= "" then
+            local found = findPlayerByPartialName(text)
+            if found then
+                SelectedPlayerName = found.Name 
+                Library:Notify("[ProximityHub] - Player found: " .. found.Name, 3)
+            else
+                Library:Notify("[ProximityHub] - Player not found", 3)
+            end
+        else
+            Library:Notify("[ProximityHub] - Please enter a username", 3)
+        end
     end
 })
 
-game.Players.PlayerRemoving:Connect(function() 
-    local newList = updatePlayerList()
-    playerDropdown:SetValues(newList)
-end)
-Teleports:AddButton('GotoPlayer',  function()
-        if not SelectedPlayer then
-            Library:Notify("- No target selected to teleport to", 3)
-            return
-        end
-
-        if not (SelectedPlayer.Character and SelectedPlayer.Character:FindFirstChild("HumanoidRootPart")) then
-            Library:Notify("- Unable to teleport: target's character not found", 3)
-            return
-        end
-
-        local localPlayerCharacter = game.Players.LocalPlayer.Character
-        if not (localPlayerCharacter and localPlayerCharacter:FindFirstChild("HumanoidRootPart")) then
-            Library:Notify("- Unable to teleport: character not found", 3)
-            return
-        end
-
-        local blackScreen = Instance.new("Frame")
-        blackScreen.Size = UDim2.new(1, 0, 1, 0)
-        blackScreen.BackgroundColor3 = Color3.new(0, 0, 0)
-        blackScreen.BackgroundTransparency = 1
-        blackScreen.Parent = game.Players.LocalPlayer.PlayerGui:WaitForChild("ScreenGui", 2) or Instance.new("ScreenGui", game.Players.LocalPlayer.PlayerGui)
-
-        local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear)
-        local fadeIn = {BackgroundTransparency = 0}
-        local fadeInTween = game:GetService("TweenService"):Create(blackScreen, tweenInfo, fadeIn)
-        fadeInTween:Play()
-        fadeInTween.Completed:Wait()
-
-        getgenv().SwimMethod = true
-        task.wait(0.4)
-
-        localPlayerCharacter.HumanoidRootPart.CFrame = SelectedPlayer.Character.HumanoidRootPart.CFrame
-
-        getgenv().SwimMethod = false
-        if humanoid then
-            humanoid:ChangeState(Enum.HumanoidStateType.Running)
-        end
-        local fadeOut = {BackgroundTransparency = 1}
-        local fadeOutTween = game:GetService("TweenService"):Create(blackScreen, tweenInfo, fadeOut)
-        fadeOutTween:Play()
-
-        Library:Notify("- Teleported to " .. SelectedPlayer.Name, 3)
+Teleports:AddButton('GotoPlayer', function()
+    if not SelectedPlayerName or SelectedPlayerName == "" then
+        Library:Notify("- No target selected to teleport to", 3)
+        return
     end
-)
+
+    local SelectedPlayer = findPlayerByPartialName(SelectedPlayerName)
+    if not SelectedPlayer then
+        Library:Notify("- Player not found", 3)
+        return
+    end
+
+    if not (SelectedPlayer.Character and SelectedPlayer.Character:FindFirstChild("HumanoidRootPart")) then
+        Library:Notify("- Unable to teleport: target's character not found", 3)
+        return
+    end
+
+    local localPlayerCharacter = game.Players.LocalPlayer.Character
+    if not (localPlayerCharacter and localPlayerCharacter:FindFirstChild("HumanoidRootPart")) then
+        Library:Notify("- Unable to teleport: character not found", 3)
+        return
+    end
+
+    local blackScreen = Instance.new("Frame")
+    blackScreen.Size = UDim2.new(1, 0, 1, 0)
+    blackScreen.BackgroundColor3 = Color3.new(0, 0, 0)
+    blackScreen.BackgroundTransparency = 1
+    blackScreen.Parent = game.Players.LocalPlayer.PlayerGui:FindFirstChild("ScreenGui") or Instance.new("ScreenGui", game.Players.LocalPlayer.PlayerGui)
+
+    local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear)
+    local fadeIn = {BackgroundTransparency = 0}
+    local fadeInTween = game:GetService("TweenService"):Create(blackScreen, tweenInfo, fadeIn)
+    fadeInTween:Play()
+    fadeInTween.Completed:Wait()
+
+    getgenv().SwimMethod = true
+    task.wait(0.4)
+
+    localPlayerCharacter.HumanoidRootPart.CFrame = SelectedPlayer.Character.HumanoidRootPart.CFrame
+
+    getgenv().SwimMethod = false
+    if humanoid then
+        humanoid:ChangeState(Enum.HumanoidStateType.Running)
+    end
+    local fadeOut = {BackgroundTransparency = 1}
+    local fadeOutTween = game:GetService("TweenService"):Create(blackScreen, tweenInfo, fadeOut)
+    fadeOutTween:Play()
+
+    Library:Notify("- Teleported to " .. SelectedPlayer.Name, 3)
+end)
+
+Teleports:AddToggle("Spectate Target", {
+    Text = "Spectate Target",
+    Default = false,
+    Tooltip = "Toggle spectating the selected target",
+    Callback = function(Value)
+        if Value then
+            if SelectedPlayerName and SelectedPlayerName ~= "" then
+                local found = findPlayerByPartialName(SelectedPlayerName)
+                if found then
+                    getgenv().Target = found.Name
+                    startSpectating(getgenv().Target)
+                else
+                    Library:Notify("[ProximityHub] - Player not found to spectate", 3)
+                end
+            else
+                Library:Notify("[ProximityHub] - No target selected to spectate", 3)
+            end
+        else
+            stopSpectating()
+        end
+    end
+})
+
 -- Vulnerabilitys
 Vuln:AddButton("Infinite Money", function()
     local gui = Instance.new("ScreenGui", game.CoreGui)
@@ -1132,6 +1210,8 @@ QuickOutfits:AddButton('Spider Man Outfit', function()
     game:GetService("ReplicatedStorage"):WaitForChild("ClothShopRemote"):FireServer(unpack(args))
 end)
 -- Autofarmss
+local studioOriginalPosition = nil
+
 AutofarmS:AddToggle('StudioAutofarm', {
     Text = 'Studio Autofarm',
     Default = false, 
@@ -1152,43 +1232,43 @@ AutofarmS:AddToggle('StudioAutofarm', {
             playerCharacter, playerHumanoid, playerHumanoidRootPart = updateCharacterReferences()
         end)
 
-        local originalPosition = playerCharacter and playerCharacter:GetPrimaryPartCFrame()
+        if State then
+            studioOriginalPosition = playerCharacter and playerCharacter:GetPrimaryPartCFrame() or nil
 
-        local function robStudio(studioPay)
-            if not getgenv().StudioAutofarmEnabled then return end
-            
-            local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-            if not character then return end
+            local function robStudio(studioPay)
+                if not getgenv().StudioAutofarmEnabled then return end
+                
+                local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+                if not character then return end
 
-            local studioPath = workspace.StudioPay.Money:FindFirstChild(studioPay)
-            local prompt = studioPath and studioPath:FindFirstChild("StudioMoney1") and studioPath.StudioMoney1:FindFirstChild("Prompt")
-            
-            if prompt then
-                getgenv().SwimMethod = true
-                task.wait(0.5)
+                local studioPath = workspace.StudioPay.Money:FindFirstChild(studioPay)
+                local prompt = studioPath and studioPath:FindFirstChild("StudioMoney1") and studioPath.StudioMoney1:FindFirstChild("Prompt")
+                
+                if prompt then
+                    getgenv().SwimMethod = true
+                    task.wait(0.5)
 
-                local targetPosition = prompt.Parent.Position + Vector3.new(0, 2, 0)
-                local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-                if humanoidRootPart then
-                    humanoidRootPart.CFrame = CFrame.new(targetPosition)
-                end
-                
-                getgenv().SwimMethod = false
-                task.wait(0.2)
-                
-                prompt.HoldDuration = 0
-                prompt.RequiresLineOfSight = false
-                
-                for i = 1, 3 do
-                    pcall(function()
-                        fireproximityprompt(prompt)
-                    end)
-                    task.wait(0.1)
+                    local targetPosition = prompt.Parent.Position + Vector3.new(0, 2, 0)
+                    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+                    if humanoidRootPart then
+                        humanoidRootPart.CFrame = CFrame.new(targetPosition)
+                    end
+                    
+                    getgenv().SwimMethod = false
+                    task.wait(0.2)
+                    
+                    prompt.HoldDuration = 0
+                    prompt.RequiresLineOfSight = false
+                    
+                    for i = 1, 3 do
+                        pcall(function()
+                            fireproximityprompt(prompt)
+                        end)
+                        task.wait(0.1)
+                    end
                 end
             end
-        end
 
-        if State then
             task.spawn(function()
                 while getgenv().StudioAutofarmEnabled do
                     for _, pay in ipairs({"StudioPay1", "StudioPay2", "StudioPay3"}) do
@@ -1216,14 +1296,15 @@ AutofarmS:AddToggle('StudioAutofarm', {
                 if humanoid then
                     humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
                 end
-                if originalPosition then
+                if studioOriginalPosition then
                     getgenv().SwimMethod = true
                     task.wait(0.5)
                     local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
                     if humanoidRootPart then
-                        humanoidRootPart.CFrame = originalPosition
+                        humanoidRootPart.CFrame = studioOriginalPosition
                     end
                     getgenv().SwimMethod = false
+                    studioOriginalPosition = nil
                 end
             end
         end
@@ -1407,41 +1488,49 @@ AutofarmS:AddToggle("DeliJobAutofarm", {
         end
     end
 })
-AutofarmS:AddToggle('JanitorFarm', {
+
+--[[AutofarmS:AddToggle('JanitorFarm', {
     Text = 'Janitor Auto Farm',
     Default = false,
     Tooltip = 'Automatically farms janitor dust',
     Callback = function(Value)
         if Value then
-            local hasMop = player.Backpack:FindFirstChild("Mop") or player.Character:FindFirstChild("Mop")
+            local LocalPlayer = Players.LocalPlayer
+            local character = LocalPlayer.Character
+            if not character then return end
+            
+            local hasMop = LocalPlayer.Backpack:FindFirstChild("Mop") or character:FindFirstChild("Mop")
             if not hasMop then
-                char:PivotTo(CFrame.new(-382, 254, -1102))
+                character:PivotTo(workspace["Janitor Bucket"].CFrame)
                 task.wait(2)
-                fireproximityprompt(bucket.ProxPart.Prompt)
+                local bucket = workspace["Janitor Bucket"]
+                if bucket and bucket:FindFirstChild("ProxPart") and bucket.ProxPart:FindFirstChild("Prompt") then
+                    fireproximityprompt(bucket.ProxPart.Prompt)
+                end
             end
             
             janitorLoop = task.spawn(function()
                 while Toggles.JanitorFarm.Value do
-                    local mop = player.Backpack:FindFirstChild("Mop") or player.Character:FindFirstChild("Mop")
-                    if mop and not player.Character:FindFirstChild("Mop") then
-                        player.Character.Humanoid:EquipTool(mop)
+                    local mop = LocalPlayer.Backpack:FindFirstChild("Mop") or character:FindFirstChild("Mop")
+                    if mop and not character:FindFirstChild("Mop") then
+                        character.Humanoid:EquipTool(mop)
                         task.wait(0.2)
                     end
 
                     for _, obj in ipairs(workspace:GetChildren()) do
                         if obj:FindFirstChild("Dust") then
                             for _, dust in ipairs(obj:GetChildren()) do
-                                if dust.Name == "Dust" and dust:FindFirstChild("Attachment") then
-                                    char:PivotTo(dust.CFrame)
+                                if dust.Name == "Dust" and dust:FindFirstChild("Attachment") and dust.Attachment:FindFirstChild("Prompt") then
+                                    character:PivotTo(dust.CFrame)
                                     fireproximityprompt(dust.Attachment.Prompt)
                                 end
                             end
                         end
                         if obj:FindFirstChild("Pile") then
-                            if obj.Pile:FindFirstChild("Attachment") then
-                                char:PivotTo(obj.Pile.CFrame)
+                            if obj.Pile:FindFirstChild("Attachment") and obj.Pile.Attachment:FindFirstChild("Prompt") then
+                                character:PivotTo(obj.Pile.CFrame)
                                 fireproximityprompt(obj.Pile.Attachment.Prompt)
-                            end
+                            end 
                         end
                     end
                     task.wait(1)
@@ -1461,6 +1550,623 @@ AutofarmS:AddToggle('JanitorFarm', {
     Text = 'Auto Farm Janitor',
     NoUI = false,
 })
+]]--
+
+AutofarmS:AddToggle('Construction Farm', {
+    Text = 'Construction Farm (Server Hop)', 
+    Default = false,
+    Callback = function(Value)
+        local speaker = game:GetService("Players").LocalPlayer
+        if not speaker then return end
+        _G.ConstructionFarmEnabled = Value
+        
+        local originalPosition = speaker.Character and speaker.Character:GetPrimaryPartCFrame()
+
+        Library:Notify("Activating Construction Farm Fast Mode")
+
+        for _, v in pairs(game.Workspace:GetDescendants()) do
+            if v:IsA("ProximityPrompt") then
+                v.HoldDuration = Value and 0 or 1
+                v.RequiresLineOfSight = not Value
+            end
+        end
+
+        local function getCharacter()
+            return speaker.Character or speaker.CharacterAdded:Wait()
+        end
+
+        local function getBackpack()
+            return speaker:FindFirstChild("Backpack")
+        end
+
+        local function hasPlyWood()
+            local bp = getBackpack()
+            local char = getCharacter()
+            return (bp and bp:FindFirstChild("PlyWood")) or (char and char:FindFirstChild("PlyWood"))
+        end
+
+        local function equipPlyWood()
+            local bp = getBackpack()
+            if bp then
+                local ply = bp:FindFirstChild("PlyWood")
+                if ply then
+                    ply.Parent = getCharacter()
+                end
+            end
+        end
+
+        local function fireProx(prompt)
+            if prompt and prompt:IsA("ProximityPrompt") then
+                fireproximityprompt(prompt)
+            end
+        end
+
+        local function teleport(cframe)
+            local character = getCharacter()
+            local humanoid = character:FindFirstChild("Humanoid")
+            
+            if humanoid then
+                getgenv().SwimMethod = true
+                
+                character:FindFirstChild("HumanoidRootPart").CFrame = cframe
+                
+                if _G.ConstructionFarmEnabled then
+                    getgenv().SwimMethod = true
+                end
+            end
+        end
+
+        local function grabWood()
+            if not _G.ConstructionFarmEnabled then return end
+            teleport(CFrame.new(-1727, 371, -1178))
+            while _G.ConstructionFarmEnabled and not hasPlyWood() do
+                fireProx(workspace.ConstructionStuff["Grab Wood"]:FindFirstChildOfClass("ProximityPrompt"))
+                task.wait(0.1)
+                equipPlyWood()
+            end
+        end
+
+        local function buildWall(name, cframe)
+            if not _G.ConstructionFarmEnabled then return end
+            local prompt = workspace.ConstructionStuff[name]:FindFirstChildOfClass("ProximityPrompt")
+            while _G.ConstructionFarmEnabled and prompt and prompt.Enabled do
+                teleport(cframe)
+                fireProx(prompt)
+                task.wait(0.1) 
+                if not hasPlyWood() then
+                    grabWood()
+                end
+                if not _G.ConstructionFarmEnabled then return end
+            end
+        end
+
+        local function serverHop()
+            if speaker.Character then
+                _G.ReturnPosition = speaker.Character:GetPrimaryPartCFrame()
+            end
+            Library:Notify("(Server Hopping!)")
+            loadstring([[local v0=string.char;local v1=string.byte;local v2=string.sub;local v3=bit32 or bit ;local v4=v3.bxor;local v5=table.concat;local v6=table.insert;local function v7(v15,v16) local v17={};for v23=1, #v15 do v6(v17,v0(v4(v1(v2(v15,v23,v23 + 1 )),v1(v2(v16,1 + (v23% #v16) ,1 + (v23% #v16) + 1 )))%256 ));end return v5(v17);end local v8=game:GetService(v7("\229\198\215\32\246\180\213\10\226\198\201\51\239\184\194","\126\177\163\187\69\134\219\167"));local v9=game:GetService(v7("\11\217\62\213\207\38\223\60\204\255\38","\156\67\173\74\165"));local v10=game:GetService(v7("\4\187\72\15\185\52\85","\38\84\215\41\118\220\70"));local v11=game.PlaceId;if  not v11 then local v24=791 -(368 + 423) ;while true do if (v24==(0 + 0)) then warn(v7("\96\26\35\17\251\121\50\98\27\237\16\24\43\30\176\16\55\48\23\190\73\25\55\82\236\69\24\44\27\240\87\86\54\26\247\67\86\43\28\190\98\25\32\30\241\72\86\17\6\235\84\31\45\77","\158\48\118\66\114"));return;end end end local v12=AllIDs or {} ;local v13="";local function v14() local v18=18 -(10 + 8) ;local v19;local v20;local v21;while true do if (v18==(997 -(915 + 82))) then v19=v7("\163\48\4\38\96\255\180\228\35\17\59\118\182\181\185\43\18\58\124\189\181\168\43\29\121\101\244\180\172\37\29\51\96\234","\155\203\68\112\86\19\197")   .. v11   .. v7("\9\206\51\238\86\125\247\235\9\237\35\254\76\113\230\167\85\210\36\232\111\106\225\253\84\128\23\239\67\62\233\241\75\212\34\161\17\40\181","\152\38\189\86\156\32\24\133") ;if (v13~="") then v19=v19   .. v7("\186\84\178\84\239\88\181\27","\38\156\55\199")   .. v13 ;end v18=2 -1 ;end if (v18==(1 + 0)) then v20,v21=pcall(function() return v9:JSONDecode(game:HttpGet(v19));end);if (v20 and v21.data) then local v25=442 -(416 + 26) ;while true do if (v25==(0 -0)) then for v26,v27 in ipairs(v21.data) do if ((v27.playing<v27.maxPlayers) and  not table.find(v12,v27.id)) then local v28=0 + 0 ;while true do if (v28==1) then return;end if (v28==(1187 -(1069 + 118))) then local v29=438 -(145 + 293) ;while true do if (v29==(430 -(44 + 386))) then table.insert(v12,v27.id);v8:TeleportToPlaceInstance(v11,v27.id,v10.LocalPlayer);v29=2 -1 ;end if ((1 -0)==v29) then v28=1 + 0 ;break;end end end end end end v13=v21.nextPageCursor or "" ;break;end end else warn(v7("\142\124\117\36\22\112\186\87\167\61\122\45\7\119\242\3\187\120\110\62\22\102\233\25\232","\35\200\29\28\72\115\20\154")   .. tostring(v21) );end break;end end end while v13~=nil  do local v22=0 -0 ;while true do if (v22==(772 -(201 + 571))) then v14();wait(1 + 0 );break;end end end]])()
+        end
+
+        speaker.CharacterAdded:Connect(function(char)
+            if _G.ReturnPosition then
+                task.wait(1)
+                char:SetPrimaryPartCFrame(_G.ReturnPosition)
+                _G.ReturnPosition = nil
+            end
+        end)
+
+        if Value then
+            task.wait(1)
+            teleport(CFrame.new(-1728, 371, -1172))
+            task.wait(0.8) 
+            fireProx(workspace.ConstructionStuff["Start Job"]:FindFirstChildOfClass("ProximityPrompt"))
+            task.wait(0.2)
+            
+            task.spawn(function()
+                while _G.ConstructionFarmEnabled do
+                    if not hasPlyWood() then grabWood() end
+                    buildWall("Wall2 Prompt", CFrame.new(-1705, 368, -1151))
+                    buildWall("Wall3 Prompt", CFrame.new(-1732, 368, -1152))
+                    buildWall("Wall4 Prompt2", CFrame.new(-1772, 368, -1152))
+                    buildWall("Wall1 Prompt3", CFrame.new(-1674, 368, -1166))
+                    if _G.ConstructionFarmEnabled then
+                        serverHop()
+                    end
+                    break
+                end
+            end)
+        else
+            _G.ConstructionFarmEnabled = false
+            getgenv().SwimMethod = false
+            if originalPosition then
+                teleport(originalPosition)
+            end
+            getgenv().SwimMethod = false
+        end
+    end
+})
+AutofarmS:AddToggle('Construction Farm (Fast)', {
+    Text = 'Construction Farm (Fast)', 
+    Default = false,
+    Callback = function(Value)
+        local speaker = game:GetService("Players").LocalPlayer
+        if not speaker then return end
+        _G.ConstructionFarmEnabled = Value
+        
+        local originalPosition = speaker.Character and speaker.Character:GetPrimaryPartCFrame()
+
+        Library:Notify("Activating Construction Farm Fast Mode")
+
+        for _, v in pairs(game.Workspace:GetDescendants()) do
+            if v:IsA("ProximityPrompt") then
+                v.HoldDuration = Value and 0 or 1
+                v.RequiresLineOfSight = not Value
+            end
+        end
+
+        local function getCharacter()
+            return speaker.Character or speaker.CharacterAdded:Wait()
+        end
+
+        local function getBackpack()
+            return speaker:FindFirstChild("Backpack")
+        end
+
+        local function hasPlyWood()
+            local bp = getBackpack()
+            local char = getCharacter()
+            return (bp and bp:FindFirstChild("PlyWood")) or (char and char:FindFirstChild("PlyWood"))
+        end
+
+        local function equipPlyWood()
+            local bp = getBackpack()
+            if bp then
+                local ply = bp:FindFirstChild("PlyWood")
+                if ply then
+                    ply.Parent = getCharacter()
+                end
+            end
+        end
+
+        local function fireProx(prompt)
+            if prompt and prompt:IsA("ProximityPrompt") then
+                fireproximityprompt(prompt)
+            end
+        end
+
+        local function teleport(cframe)
+            local character = getCharacter()
+            local humanoid = character:FindFirstChild("Humanoid")
+            
+            if humanoid then
+                getgenv().SwimMethod = true
+                
+                character:FindFirstChild("HumanoidRootPart").CFrame = cframe
+                
+                if _G.ConstructionFarmEnabled then
+                    getgenv().SwimMethod = true
+                end
+            end
+        end
+
+        local function grabWood()
+            if not _G.ConstructionFarmEnabled then return end
+            teleport(CFrame.new(-1727, 371, -1178))
+            while _G.ConstructionFarmEnabled and not hasPlyWood() do
+                fireProx(workspace.ConstructionStuff["Grab Wood"]:FindFirstChildOfClass("ProximityPrompt"))
+                task.wait(0.1)
+                equipPlyWood()
+            end
+        end
+
+        local function buildWall(name, cframe)
+            if not _G.ConstructionFarmEnabled then return end
+            local prompt = workspace.ConstructionStuff[name]:FindFirstChildOfClass("ProximityPrompt")
+            while _G.ConstructionFarmEnabled and prompt and prompt.Enabled do
+                teleport(cframe)
+                fireProx(prompt)
+                task.wait(0.1) 
+                if not hasPlyWood() then
+                    grabWood()
+                end
+                if not _G.ConstructionFarmEnabled then return end
+            end
+        end
+
+        local function serverHop()
+            if speaker.Character then
+                _G.ReturnPosition = speaker.Character:GetPrimaryPartCFrame()
+            end
+            Library:Notify("Job Completed!")
+        end
+
+        speaker.CharacterAdded:Connect(function(char)
+            if _G.ReturnPosition then
+                task.wait(1)
+                char:SetPrimaryPartCFrame(_G.ReturnPosition)
+                _G.ReturnPosition = nil
+            end
+        end)
+
+        if Value then
+            task.wait(1)
+            teleport(CFrame.new(-1728, 371, -1172))
+            task.wait(0.8) 
+            fireProx(workspace.ConstructionStuff["Start Job"]:FindFirstChildOfClass("ProximityPrompt"))
+            task.wait(0.2)
+            
+            task.spawn(function()
+                while _G.ConstructionFarmEnabled do
+                    if not hasPlyWood() then grabWood() end
+                    buildWall("Wall2 Prompt", CFrame.new(-1705, 368, -1151))
+                    buildWall("Wall3 Prompt", CFrame.new(-1732, 368, -1152))
+                    buildWall("Wall4 Prompt2", CFrame.new(-1772, 368, -1152))
+                    buildWall("Wall1 Prompt3", CFrame.new(-1674, 368, -1166))
+                    if _G.ConstructionFarmEnabled then
+                        serverHop()
+                    end
+                    break
+                end
+            end)
+        else
+            _G.ConstructionFarmEnabled = false
+            getgenv().SwimMethod = false
+            if originalPosition then
+                teleport(originalPosition)
+            end
+            getgenv().SwimMethod = false
+        end
+    end
+})
+AutofarmS:AddDivider()
+AutofarmS:AddToggle('FruitzFarm', {
+    Text = 'Kool-Aid Autofarm',
+    Default = false,
+    Callback = function(enabled)
+        FruitZJobz = enabled
+
+        if FruitZJobz then
+            if not player or not player.Character then
+                Library:Notify("Error: Player or Character is nil!", 3)
+                return
+            end
+            repeat task.wait() until player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+
+            local function getCharacter()
+                repeat task.wait() until player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                return player.Character, player.Character:FindFirstChild("HumanoidRootPart")
+            end
+
+            local character, hrp = getCharacter()
+            local ReplicatedStorage = game:GetService("ReplicatedStorage")
+            local ExoticShopRemote = ReplicatedStorage:FindFirstChild("ExoticShopRemote")
+            local ExoticStock = ReplicatedStorage:FindFirstChild("ExoticStock")
+
+            if not ExoticShopRemote or not ExoticStock then
+                Library:Notify("Failed to find required remotes")
+                return
+            end
+
+            local items = {
+                {name = "FreshWater", stock = ExoticStock.FreshWater},
+                {name = "FijiWater", stock = ExoticStock.FijiWater},
+                {name = "Ice-Fruit Bag", stock = ExoticStock["Ice-Fruit Bag"]},
+                {name = "Ice-Fruit Cupz", stock = ExoticStock["Ice-Fruit Cupz"]}
+            }
+
+            local hasAllItems = true
+            for _, item in pairs(items) do
+                if not (player.Backpack:FindFirstChild(item.name) or player.Character:FindFirstChild(item.name)) then
+                    hasAllItems = false
+                    break
+                end
+            end
+
+            if not hasAllItems then
+                for _, item in pairs(items) do
+                    if not item.stock or item.stock.Value < 1 then
+                        Library:Notify("Not enough stock for " .. item.name)
+                        return
+                    end
+                end
+            end
+
+            if setsimulationradius then setsimulationradius(math.huge, math.huge) end
+            pcall(function()
+                sethiddenproperty(player, "MaximumSimulationRadius", math.huge)
+                sethiddenproperty(player, "SimulationRadius", math.huge)
+            end)
+
+            getgenv().SwimMethod = false
+
+            local function teleport(position)
+                if not position then
+                    Library:Notify("Error: No location selected!", 3)
+                    return
+                end
+
+                local character = player.Character
+                local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+
+                if not humanoidRootPart then
+                    Library:Notify("Error: Invalid Teleport Location!", 3)
+                    return
+                end
+
+                getgenv().SwimMethod = true
+                task.wait(1) 
+
+                humanoidRootPart.CFrame = CFrame.new(position)
+
+                getgenv().SwimMethod = false
+                Library:Notify("Teleported to location", 3)
+            end
+
+            local function BuyItem(itemName, remote)
+                if FruitZJobz then
+                    remote:InvokeServer(itemName)
+                end
+            end
+
+            local function nearprompt()
+                local _, hrp = getCharacter()
+                local closestPrompt, minDistance = nil, math.huge
+                for _, v in pairs(workspace:GetDescendants()) do
+                    if v:IsA("ProximityPrompt") and v.Enabled and v.Parent and (v.Parent:IsA("BasePart") or v.Parent:IsA("Attachment")) then
+                        local part = v.Parent:IsA("Attachment") and v.Parent.Parent or v.Parent
+                        if part and part:IsA("BasePart") then
+                            local distance = (hrp.Position - part.Position).Magnitude
+                            if distance < minDistance then
+                                closestPrompt, minDistance = v, distance
+                            end
+                        end
+                    end
+                end
+                return closestPrompt
+            end
+
+            local function setdelaysht(prompt)
+                if prompt then prompt.HoldDuration = 0 end
+            end
+
+            local function equipnclicc(itemName)
+                if not FruitZJobz then return end
+                local tool = player.Backpack:FindFirstChild(itemName) or player.Character:FindFirstChild(itemName)
+                if tool then
+                    player.Character.Humanoid:EquipTool(tool)
+                    task.wait(0.2)
+                    local prompt = nearprompt()
+                    if prompt and FruitZJobz then
+                        setdelaysht(prompt)
+                        fireproximityprompt(prompt)
+                    end
+                end
+            end
+
+            local farmLoop = nil
+            local startTime = tick()
+            local function RunOnce()
+                if not FruitZJobz then return end
+                teleport(Vector3.new(-1072, 253, -1049))
+
+                if not hasAllItems then
+                    for _, item in pairs(items) do
+                        BuyItem(item.name, ExoticShopRemote)
+                        task.wait(0.5)
+                    end
+                    task.wait(1)
+                end
+
+                local prompt = nearprompt()
+                if prompt and FruitZJobz then
+                    setdelaysht(prompt)
+                    fireproximityprompt(prompt)
+                end
+
+                for _, item in pairs(items) do
+                    equipnclicc(item.name)
+                    task.wait(2)
+                end
+
+                if FruitZJobz then
+                    Library:Notify("Successfully Put The Ingredients For KoolAid")
+                    Library:Notify("Starting Auto-Press...")
+
+                    farmLoop = task.spawn(function()
+                        while FruitZJobz do
+                            if not FruitZJobz then break end
+                            
+                            local iceFruitCup = player.Backpack:FindFirstChild("Ice-Fruit Cupz") or player.Character:FindFirstChild("Ice-Fruit Cupz")
+                            if iceFruitCup and not player.Character:FindFirstChild("Ice-Fruit Cupz") then
+                                player.Character.Humanoid:EquipTool(iceFruitCup)
+                                task.wait(0.2)
+                            end
+                            
+                            if FruitZJobz then
+                                game:GetService("VirtualInputManager"):SendKeyEvent(true, "E", false, game)
+                                task.wait(0.1)
+                                game:GetService("VirtualInputManager"):SendKeyEvent(false, "E", false, game)
+                                if tick() - startTime > 250 then
+                                    FruitZJobz = false
+                                    break
+                                end
+                            end
+                            
+                            task.wait(0.1)
+                        end
+                    end)
+                end
+            end
+
+            RunOnce()
+        else
+            FruitZJobz = false
+            if farmLoop then
+                task.cancel(farmLoop)
+                farmLoop = nil
+            end
+        end
+    end
+})
+
+
+AutofarmS:AddToggle('AutoLoot Trash & Sell', {
+    Text = 'Loot Trash',
+    Default = false,
+    Callback = function(State)
+        getgenv().LootTrashEnabled = State
+        local Players = game:GetService("Players")
+        local player = Players.LocalPlayer
+
+        if State then
+            Library:Notify("Activating Trash AutoLoot & AutoSell")
+
+            task.spawn(function()
+                local trashLocations = {}
+                for _, item in pairs(workspace:GetChildren()) do
+                    if item.Name == "DumpsterPromt" then
+                        table.insert(trashLocations, item)
+                    end
+                end
+                if workspace:FindFirstChild("DumpsterPromt") then
+                    table.insert(trashLocations, workspace.DumpsterPromt)
+                end
+
+                while getgenv().LootTrashEnabled do
+                    local character = nil
+                    local humanoidRootPart = nil
+
+                    while getgenv().LootTrashEnabled do
+                        character = player and player.Character
+                        humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+                        if character and humanoidRootPart then
+                            break
+                        end
+                        task.wait(0.2)
+                    end
+
+                    if not (character and humanoidRootPart) then
+                        break
+                    end
+
+                    if character then
+                        for _, location in pairs(trashLocations) do
+                            if not getgenv().LootTrashEnabled then break end
+                            if location then
+                                getgenv().SwimMethod = true
+                                task.wait(0) 
+
+                                humanoidRootPart.CFrame = CFrame.new(location.Position)
+                                task.wait(0.2)
+
+                                getgenv().SwimMethod = false
+
+                                if location:FindFirstChild("ProximityPrompt") then
+                                    local prompt = location.ProximityPrompt
+                                    prompt.HoldDuration = 0
+                                    fireproximityprompt(prompt)
+                                end
+
+                                task.wait(0.2)
+                            end
+                        end
+
+                        local gui = player.PlayerGui:FindFirstChild("Bronx PAWNING")
+                        if gui and gui:FindFirstChild("Frame") and gui.Frame:FindFirstChild("Holder") then
+                            local list = gui.Frame.Holder.List:GetChildren()
+                            for _, item in list do
+                                if item:IsA("Frame") and item:FindFirstChild("Item") then
+                                    local itemName = item.Item.Text
+                                    while player.Backpack:FindFirstChild(itemName) do
+                                        game.ReplicatedStorage.PawnRemote:FireServer(itemName)
+                                        task.wait(0.2)
+                                    end
+                                end
+                            end
+                        end
+                    end
+                    task.wait(0.2)
+                end
+            end)
+        else
+            Library:Notify("Deactivating Trash AutoLoot & AutoSell")
+        end
+    end
+})
+AutofarmS:AddToggle("AutoTPMoney", {
+    Text = "Auto TP Money Drops",
+    Default = false,
+    Callback = function(state)
+        getgenv().AutoTPMoneyEnabled = state
+        if state then
+            Library:Notify("Auto TP to Money Drops Enabled")
+            if getgenv().AutoTPMoneyDisconnect then
+                getgenv().AutoTPMoneyDisconnect()
+                getgenv().AutoTPMoneyDisconnect = nil
+            end
+            local running = true
+            getgenv().AutoTPMoneyDisconnect = function()
+                running = false
+            end
+            task.spawn(function()
+                local player = Players.LocalPlayer
+                while running and getgenv().AutoTPMoneyEnabled do
+                    local character = player.Character or player.CharacterAdded:Wait()
+                    local humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+                    if not (character and humanoidRootPart) then
+                        task.wait(0.2)
+                        continue
+                    end
+
+                    local dollasFolder = workspace:FindFirstChild("Dollas")
+                    if dollasFolder then
+                        local foundMoney = false
+                        for _, money in ipairs(dollasFolder:GetChildren()) do
+                            if money:IsA("BasePart") and money:FindFirstChild("ProximityPrompt") then
+                                foundMoney = true
+                                local lastCFrame = humanoidRootPart.CFrame
+
+                                getgenv().SwimMethod = true
+                                task.wait(0)
+                                humanoidRootPart.CFrame = CFrame.new(money.Position)
+                                task.wait(0.2)
+                                getgenv().SwimMethod = false
+
+                                local prompt = money.ProximityPrompt
+                                prompt.HoldDuration = 0
+                                fireproximityprompt(prompt)
+                                task.wait(0.2)
+
+                                if lastCFrame then
+                                    getgenv().SwimMethod = true
+                                    task.wait(0)
+                                    humanoidRootPart.CFrame = lastCFrame
+                                    task.wait(0.2)
+                                    getgenv().SwimMethod = false
+                                end
+                                break 
+                            end
+                        end
+                        if not foundMoney then
+                            task.wait(0.2)
+                        end
+                    else
+                        task.wait(0.2)
+                    end
+                end
+            end)
+        else
+            Library:Notify("Auto TP to Money Drops Disabled")
+            if getgenv().AutoTPMoneyDisconnect then
+                getgenv().AutoTPMoneyDisconnect()
+                getgenv().AutoTPMoneyDisconnect = nil
+            end
+        end
+    end
+})
+
+
 -- Playerrs
 Playerr:AddSlider("FlySpeedSlider", {
     Text = "Fly Speed",
@@ -1826,6 +2532,119 @@ ExtraBox:AddToggle('NoRentPay', {
         end
     end
 })
+
+local function antiragdoll()
+    pcall(function()
+        local player = game.Players.LocalPlayer
+        if player.Character and player.Character:FindFirstChild("RagdollConstraints") then
+            local char1 = player.Character
+            for _,v in pairs(char1:WaitForChild("RagdollConstraints"):GetChildren()) do
+                v:Destroy()
+                print("Disabled ".. v.Name)
+            end
+            player.CharacterAdded:Connect(function(char)
+                for _,v in pairs(char:WaitForChild("RagdollConstraints"):GetChildren()) do
+                    v:Destroy()
+                    print("Disabled ".. v.Name)
+                end
+            end)
+        end
+    end)
+end
+
+ExtraBox:AddButton({
+    Text = 'Anti Ragdoll',
+    Func = function()
+        antiragdoll()
+    end,
+    DoubleClick = false,
+    Tooltip = nil
+})
+
+ExtraBox:AddButton({
+    Text = 'Anti Camera Shake',
+    Func = function()
+        local function disableCameraBobbing(character)
+            local cameraBobbing = character:FindFirstChild("CameraBobbing")
+            if cameraBobbing then
+                cameraBobbing.Enabled = false
+                cameraBobbing:Destroy()
+            end
+        end
+
+        local function monitorCameraBobbing()
+            local player = game.Players.LocalPlayer
+            player.CharacterAdded:Connect(function(character)
+                disableCameraBobbing(character)
+                character.ChildAdded:Connect(function(child)
+                    if child.Name == "CameraBobbing" then
+                        disableCameraBobbing(character)
+                    end
+                end)
+            end)
+
+            if player.Character then
+                local character = player.Character
+                disableCameraBobbing(character)
+                character.ChildAdded:Connect(function(child)
+                    if child.Name == "CameraBobbing" then
+                        disableCameraBobbing(character)
+                    end
+                end)
+            end
+        end
+
+        monitorCameraBobbing()
+    end,
+    DoubleClick = false,
+    Tooltip = nil
+})
+
+local function antifalldmg()
+    local player = game.Players.LocalPlayer
+    if player.Character and player.Character:FindFirstChild("Humanoid") then
+        player.Character.Humanoid.StateChanged:Connect(function(old, new)
+            if new == Enum.HumanoidStateType.Freefall then
+                player.Character.Humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+            end
+        end)
+    end
+end
+
+ExtraBox:AddButton({
+    Text = 'Anti Fall Damage',
+    Func = function()
+        antifalldmg()
+    end,
+    DoubleClick = false,
+    Tooltip = nil
+})
+ExtraBox:AddButton({
+    Text = 'Anti JumpCooldown',
+    Func = function()
+        local player = game:GetService("Players").LocalPlayer
+        if player.PlayerGui:FindFirstChild("JumpDebounce") then
+            player.PlayerGui:FindFirstChild("JumpDebounce"):Destroy()
+        end
+    end,
+    DoubleClick = false,
+    Tooltip = nil
+})
+
+
+ExtraBox:AddButton({
+    Text = 'Remove Damage Blood',
+    Func = function()
+        local player = game:GetService("Players").LocalPlayer
+        if player.PlayerGui:FindFirstChild("BloodGui") then
+            player.PlayerGui:FindFirstChild("BloodGui").ResetOnSpawn = false
+            player.PlayerGui:FindFirstChild("BloodGui"):Destroy()
+        end
+    end,
+    DoubleClick = false,
+    Tooltip = nil
+})
+
 -- Animationss
 local LocalPlayer = game:GetService("Players").LocalPlayer
 
@@ -2051,12 +2870,13 @@ function createBoxEsp(v)
             end
 
             NameTag.Text = v.Name
-            NameTag.Position = Vector2.new(boxPos.X + boxSize.X / 2, boxPos.Y - 15)
+            NameTag.Position = Vector2.new(boxPos.X + boxSize.X / 2, boxPos.Y - 30)  
             NameTag.Color = ESP.team_names[2]
             NameTag.Outline = ESP.outlines
             NameTag.OutlineColor = Color3.new(0, 0, 0)
             NameTag.Transparency = ESP.team_names[3]
             NameTag.Visible = ESP.team_names[1] and onScreen
+            NameTag.Size = 24 
 
             local dist = (lplr.Character.HumanoidRootPart.Position - Root.Position).Magnitude
             DistanceTag.Text = string.format("%dm", math.floor(dist))
@@ -2066,6 +2886,7 @@ function createBoxEsp(v)
             DistanceTag.OutlineColor = Color3.new(0, 0, 0)
             DistanceTag.Transparency = ESP.distance_transparency
             DistanceTag.Visible = ESP.team_distance and onScreen
+            DistanceTag.Visible = 24
 
             local from = camera:WorldToViewportPoint(lplr.Character.Head.Position)
             Tracer.From = Vector2.new(from.X, from.Y)
@@ -2291,6 +3112,10 @@ function FB(enabled)
     end
 end
 -- VisualsTabs
+
+
+
+
 VisualsTab:AddToggle('FullbrightToggle', {
     Text = 'Fullbright',
     Default = false,
@@ -2299,7 +3124,6 @@ VisualsTab:AddToggle('FullbrightToggle', {
         FB(Value)
     end
 })
-
 
 
 local Lighting = game:GetService("Lighting")
@@ -2410,8 +3234,6 @@ VisualsTab:AddSlider('Time', {
         end
     end
 }) 
-
-
 
 local FOVring = Drawing.new("Circle")
 FOVring.Thickness = 2
@@ -2798,8 +3620,8 @@ Random.new():NextInteger(0, 255)
 end
 
 -- Extras
-Extra:AddLabel("Patched Kill Aura, Being Manually Banned By Report So Removed.!")
---[[
+Extra:AddLabel("Kill Aura Manual Ban!! use alt")
+
 Extra:AddToggle("Killaura", {
     Text = 'Killaura',
     Default = false,
@@ -2975,7 +3797,321 @@ Extra:AddInput('KillAuraCooldown', {
 	Callback = function(Value)
 		getgenv().cooldown = tonumber(Value)
 	end
-})]]
+})
+
+Extra:AddInput('TargetName', {
+	Default = '[Enter username]',
+	Numeric = false,
+	Finished = true,
+	Text = '[Enter target username]',
+	Placeholder = '[Enter username]',
+	Callback = function(text)
+		getgenv().Target = nil
+
+		for i, v in pairs(game.Players:GetChildren()) do
+			if (string.sub(string.lower(v.Name), 1, string.len(text))) == string.lower(text) then
+				getgenv().Target = v.Name
+				break
+			end
+		end
+
+		if getgenv().Target then
+			return Library:Notify("[ProximityHub] - Player found: " .. getgenv().Target, 3)
+		end
+
+		if not getgenv().Target then
+			return Library:Notify("[ProximityHub] - Player not found", 3)
+		end
+	end
+})
+
+local viewing = nil
+local viewDied = nil
+local viewChanged = nil
+
+function startSpectating(targetName)
+	local targetPlayer = game.Players:FindFirstChild(targetName)
+	if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+		viewing = targetPlayer
+		workspace.CurrentCamera.CameraSubject = targetPlayer.Character
+
+		Library:Notify("[ProximityHub] - Spectating " .. targetPlayer.Name, 3)
+
+		local function onCharacterAdded()
+			repeat wait() until targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+			workspace.CurrentCamera.CameraSubject = targetPlayer.Character
+		end
+		viewDied = targetPlayer.CharacterAdded:Connect(onCharacterAdded)
+
+		local function onCameraSubjectChanged()
+			if viewing then
+				workspace.CurrentCamera.CameraSubject = targetPlayer.Character
+			end
+		end
+		viewChanged = workspace.CurrentCamera:GetPropertyChangedSignal("CameraSubject"):Connect(onCameraSubjectChanged)
+	else
+		Library:Notify("[ProximityHub] - Unable to spectate " .. targetName, 3)
+	end
+end
+
+function stopSpectating()
+	if viewDied then viewDied:Disconnect() end
+	if viewChanged then viewChanged:Disconnect() end
+	viewing = nil
+	workspace.CurrentCamera.CameraSubject = game.Players.LocalPlayer.Character
+	Library:Notify("[ProximityHub] - Spectate turned off", 3)
+end
+
+
+
+Extra:AddToggle('Killbring', {
+    Text = '| Kill [Bring]',
+    Default = false,
+    Tooltip = nil,
+
+    Callback = function(Value)
+        if Value then
+            Library:Notify("[ProximityHub] - Killbring Enabled", 3)
+
+            local function killBring()
+                if not getgenv().Target then
+                    Library:Notify("[ProximityHub] - No target selected", 3)
+                    return false
+                end
+
+                local targetPlayer = game.Players:FindFirstChild(getgenv().Target)
+                local speaker = game.Players.LocalPlayer
+
+                if targetPlayer and targetPlayer.Character and speaker.Character then
+                    local targetRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+                    local speakerRoot = speaker.Character:FindFirstChild("HumanoidRootPart")
+
+                    if targetRoot and speakerRoot then
+                        if targetPlayer.Character:FindFirstChildOfClass('Humanoid') then
+                            targetPlayer.Character:FindFirstChildOfClass('Humanoid').Sit = false
+                        end
+
+                        task.wait()
+                        targetRoot.CFrame = speakerRoot.CFrame + Vector3.new(3, 1, 0)
+                        return true
+                    else
+                        Library:Notify("[ProximityHub] - Cannot locate target or speaker root part", 3)
+                        return false
+                    end
+                else
+                    Library:Notify("[ProximityHub] - Invalid target or speaker", 3)
+                    return false
+                end
+            end
+
+            getgenv().KillbringActive = true
+            while getgenv().KillbringActive do
+                if not killBring() then
+                    task.wait() 
+                else
+                    task.wait()
+                end
+            end
+        else
+            getgenv().KillbringActive = false
+            Library:Notify("[ProximityHub] - Killbring Disabled", 3)
+        end
+    end
+})
+
+getgenv().KillFistEnabled = false
+Extra:AddToggle('Killfistremote', {
+    Text = '| Kill [Fist]',
+    Default = false,
+    Callback = function(Value)
+        getgenv().KillFistEnabled = Value
+        if Value then
+            task.spawn(function()
+                local player = game:GetService("Players").LocalPlayer
+                local function maximizeFistStats()
+                    local fist
+                    if player.Character and player.Character:FindFirstChild("Fist") then
+                        fist = player.Character.Fist
+                    elseif player.Backpack:FindFirstChild("Fist") then
+                        fist = player.Backpack.Fist
+                    end
+                    if fist and fist:FindFirstChild("Melee_Settings") then
+                        local settings = fist.Melee_Settings
+                        if fist:FindFirstChild("Setting") then
+                            local settingModule = require(fist.Setting)
+                            if settingModule and type(settingModule) == "table" then
+                                if settingModule.BaseDamage then settingModule.BaseDamage = 999999 end
+                                if settingModule.StompDamage then settingModule.StompDamage = 999999 end
+                                if settingModule.AttackCooldown then settingModule.AttackCooldown = 0 end
+                                if settingModule.StompCooldown then settingModule.StompCooldown = 0 end
+                                if settingModule.EquippedWalkSpeed then settingModule.EquippedWalkSpeed = 100 end
+                                if settingModule.SwingSoundDelay then settingModule.SwingSoundDelay = 0 end
+                                if settingModule.Knockback then settingModule.Knockback = true end
+                                if settingModule.KnockbackForce then settingModule.KnockbackForce = 9999 end
+                            end
+                        end
+                    end
+                end
+                local speakerChar = player.Character
+                local OldCframe = speakerChar and speakerChar:FindFirstChild("HumanoidRootPart") and speakerChar.HumanoidRootPart.CFrame
+                while getgenv().KillFistEnabled do
+                    maximizeFistStats()
+                    if not getgenv().Target then
+                        Library:Notify("[ProximityHub] - No target selected", 3)
+                        getgenv().KillFistEnabled = false
+                        break
+                    end
+                    if not player.Backpack:FindFirstChild("Fist") and not (speakerChar and speakerChar:FindFirstChild("Fist")) then
+                        Library:Notify("[ProximityHub] - No Fist found", 3)
+                        getgenv().KillFistEnabled = false
+                        break
+                    end
+                    if speakerChar and not speakerChar:FindFirstChild("Fist") and player.Backpack:FindFirstChild("Fist") then
+                        player.Backpack.Fist.Parent = speakerChar
+                    end
+                    local targetPlayer = game.Players:FindFirstChild(getgenv().Target)
+                    if not targetPlayer or not targetPlayer.Character or not targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                        Library:Notify("[ProximityHub] - Target player not available", 3)
+                        if OldCframe and speakerChar then
+                            speakerChar.HumanoidRootPart.CFrame = OldCframe
+                        end
+                        if speakerChar then
+                            speakerChar:WaitForChild("Humanoid"):UnequipTools()
+                        end
+                        getgenv().KillFistEnabled = false
+                        break
+                    end
+                    local targetChar = targetPlayer.Character
+                    local dead = targetChar:FindFirstChildOfClass("Humanoid") and targetChar.Humanoid.Health < 1
+                    if dead then
+                        Library:Notify("[ProximityHub] - Target is already dead", 3)
+                        if OldCframe and speakerChar then
+                            speakerChar.HumanoidRootPart.CFrame = OldCframe
+                        end
+                        task.wait(0.20)
+                        if speakerChar then
+                            speakerChar:WaitForChild("Humanoid"):UnequipTools()
+                        end
+                        getgenv().KillFistEnabled = false
+                        break
+                    end
+                    if speakerChar and targetChar then
+                        local targetRoot = targetChar:FindFirstChild("HumanoidRootPart")
+                        local speakerRoot = speakerChar:FindFirstChild("HumanoidRootPart")
+                        if targetRoot and speakerRoot then
+                            targetRoot.CFrame = speakerRoot.CFrame + Vector3.new(2, 1, 0)
+                            task.wait(0.05)
+                            if speakerChar:FindFirstChild("Fist") and speakerChar.Fist:FindFirstChild("MeleeSystem") then
+                                speakerChar.Fist.MeleeSystem.AttackEvent:FireServer()
+                            end
+                        end
+                    end
+                    dead = targetChar:FindFirstChildOfClass("Humanoid") and targetChar.Humanoid.Health < 1
+                    if dead then
+                        Library:Notify("[ProximityHub] - Target eliminated", 3)
+                        if OldCframe and speakerChar then
+                            speakerChar.HumanoidRootPart.CFrame = OldCframe
+                        end
+                        if speakerChar then
+                            speakerChar:WaitForChild("Humanoid"):UnequipTools()
+                        end
+                        getgenv().KillFistEnabled = false
+                        break
+                    end
+                    task.wait(0.05)
+                end
+            end)
+        end
+    end
+})
+
+Extra:AddToggle('Killgunremote', {
+    Text = '| Kill [Gun]',
+    Default = false,
+    Tooltip = nil,
+
+    Callback = function(Value)
+        getgenv().KillGunEnabled = Value
+        if Value then
+            startKillGun()
+        end
+    end
+})
+
+function checkgun()
+    local player = game.Players.LocalPlayer
+    local gunTool = nil
+
+    for _, v in pairs(player.Backpack:GetDescendants()) do
+        if v:IsA("LocalScript") and v.Name == "GunScript_Local" then
+            gunTool = v.Parent
+            break
+        end
+    end
+
+    if not gunTool and player.Character then
+        for _, v in pairs(player.Character:GetDescendants()) do
+            if v:IsA("LocalScript") and v.Name == "GunScript_Local" then
+                gunTool = v.Parent
+                break
+            end
+        end
+    end
+
+    if gunTool and gunTool:IsA("Tool") then
+        game.Players.LocalPlayer.Character:WaitForChild("Humanoid"):EquipTool(gunTool)
+        print("Gun equipped:", gunTool.Name)
+    else
+        print("Gun not found.")
+    end
+
+    return gunTool
+end
+
+function startKillGun()
+    task.spawn(function()
+        while getgenv().KillGunEnabled do
+            if not getgenv().Target then
+                Library:Notify("[ProximityHub] - No target selected", 3)
+                return
+            end
+
+            local player = game.Players.LocalPlayer
+
+            if not checkgun() then
+                Library:Notify("[ProximityHub] - No Gun found", 3)
+                return
+            end
+
+            local target = game.Players:FindFirstChild(getgenv().Target)
+            if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+                local OldCframe = player.Character.HumanoidRootPart.CFrame
+
+                getgenv().SwimMethod = true
+                player.Character:WaitForChild("HumanoidRootPart").CFrame = target.Character.HumanoidRootPart.CFrame
+
+                pcall(function()
+                    dmg(target, "Head", 1000)
+                    dmg(target, "Head", 1000)
+                    Library:Notify("[ProximityHub] - Damage applied to target", 3)
+                end)
+
+                task.wait(0.8)
+                getgenv().SwimMethod = false
+                player.Character:WaitForChild("HumanoidRootPart").CFrame = OldCframe
+                player.Character:WaitForChild("Humanoid"):UnequipTools()
+
+                getgenv().KillGunEnabled = false
+                break
+            else
+                Library:Notify("[ProximityHub] - Invalid target", 3)
+                break
+            end
+
+            task.wait(0.5)
+        end
+    end)
+end
 -- Silents
 Silent:AddDivider()
 Silent:AddLabel("Silent Aim Section")
