@@ -1,0 +1,638 @@
+-- Nuke Dropper (KILLS ALL PLAYERS!)
+-- Nuke Dropper (KILLS ALL PLAYERS!)
+-- Nuke Dropper (KILLS ALL PLAYERS!)
+-- Nuke Dropper (KILLS ALL PLAYERS!)
+-- Nuke Dropper (KILLS ALL PLAYERS!)
+-- Nuke Dropper (KILLS ALL PLAYERS!)
+-- Nuke Dropper (KILLS ALL PLAYERS!)
+-- Nuke Dropper (KILLS ALL PLAYERS!)
+-- Nuke Dropper (KILLS ALL PLAYERS!)
+-- Nuke Dropper (KILLS ALL PLAYERS!)
+-- Nuke Dropper (KILLS ALL PLAYERS!)
+-- Nuke Dropper (KILLS ALL PLAYERS!)
+-- Nuke Dropper (KILLS ALL PLAYERS!)
+-- Nuke Dropper (KILLS ALL PLAYERS!)
+-- Nuke Dropper (KILLS ALL PLAYERS!)
+-- Nuke Dropper (KILLS ALL PLAYERS!)
+-- Nuke Dropper (KILLS ALL PLAYERS!)
+-- Nuke Dropper (KILLS ALL PLAYERS!)
+-- Nuke Dropper (KILLS ALL PLAYERS!)
+-- Nuke Dropper (KILLS ALL PLAYERS!)
+-- Nuke Dropper (KILLS ALL PLAYERS!)
+-- Nuke Dropper (KILLS ALL PLAYERS!)
+-- Nuke Dropper (KILLS ALL PLAYERS!)
+-- Nuke Dropper (KILLS ALL PLAYERS!)
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+local function createSuperBigAirplane()
+    local model = Instance.new("Model")
+    model.Name = "SuperBigAirplane"
+
+    local body = Instance.new("Part")
+    body.Name = "Body"
+    body.Size = Vector3.new(200, 40, 60)
+    body.Anchored = true
+    body.CanCollide = false
+    body.BrickColor = BrickColor.new("Really black")
+    body.Material = Enum.Material.Metal
+    body.Parent = model
+
+    local cockpit = Instance.new("Part")
+    cockpit.Name = "Cockpit"
+    cockpit.Size = Vector3.new(50, 25, 40)
+    cockpit.Anchored = true
+    cockpit.CanCollide = false
+    cockpit.BrickColor = BrickColor.new("Medium stone grey")
+    cockpit.Material = Enum.Material.SmoothPlastic
+    cockpit.Parent = model
+
+    local leftWing = Instance.new("Part")
+    leftWing.Name = "LeftWing"
+    leftWing.Size = Vector3.new(20, 5, 300)
+    leftWing.Anchored = true
+    leftWing.CanCollide = false
+    leftWing.BrickColor = BrickColor.new("Institutional white")
+    leftWing.Material = Enum.Material.SmoothPlastic
+    leftWing.Parent = model
+
+    local rightWing = Instance.new("Part")
+    rightWing.Name = "RightWing"
+    rightWing.Size = Vector3.new(20, 5, 300)
+    rightWing.Anchored = true
+    rightWing.CanCollide = false
+    rightWing.BrickColor = BrickColor.new("Institutional white")
+    rightWing.Material = Enum.Material.SmoothPlastic
+    rightWing.Parent = model
+
+    local tail = Instance.new("Part")
+    tail.Name = "Tail"
+    tail.Size = Vector3.new(20, 50, 30)
+    tail.Anchored = true
+    tail.CanCollide = false
+    tail.BrickColor = BrickColor.new("Really black")
+    tail.Material = Enum.Material.Metal
+    tail.Parent = model
+
+    local propeller = Instance.new("Part")
+    propeller.Name = "Propeller"
+    propeller.Size = Vector3.new(5, 50, 5)
+    propeller.Anchored = true
+    propeller.CanCollide = false
+    propeller.BrickColor = BrickColor.new("Dark stone grey")
+    propeller.Material = Enum.Material.Metal
+    propeller.Parent = model
+
+    local fin = Instance.new("Part")
+    fin.Name = "Fin"
+    fin.Size = Vector3.new(5, 40, 20)
+    fin.Anchored = true
+    fin.CanCollide = false
+    fin.BrickColor = BrickColor.new("Really black")
+    fin.Material = Enum.Material.Metal
+    fin.Parent = model
+
+    local leftEngine = Instance.new("Part")
+    leftEngine.Name = "LeftEngine"
+    leftEngine.Size = Vector3.new(15, 15, 40)
+    leftEngine.Anchored = true
+    leftEngine.CanCollide = false
+    leftEngine.BrickColor = BrickColor.new("Dark stone grey")
+    leftEngine.Material = Enum.Material.Metal
+    leftEngine.Parent = model
+
+    local rightEngine = Instance.new("Part")
+    rightEngine.Name = "RightEngine"
+    rightEngine.Size = Vector3.new(15, 15, 40)
+    rightEngine.Anchored = true
+    rightEngine.CanCollide = false
+    rightEngine.BrickColor = BrickColor.new("Dark stone grey")
+    rightEngine.Material = Enum.Material.Metal
+    rightEngine.Parent = model
+
+    local char = LocalPlayer.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    local startPos
+    if root then
+        startPos = root.Position + Vector3.new(0, 400, -1200)
+    else
+        startPos = workspace.CurrentCamera.CFrame.Position + Vector3.new(0, 400, -1200)
+    end
+    body.Position = startPos
+    cockpit.Position = body.Position + Vector3.new(90, 20, 0)
+    leftWing.Position = body.Position + Vector3.new(-60, 10, 0)
+    rightWing.Position = body.Position + Vector3.new(60, 10, 0)
+    tail.Position = body.Position + Vector3.new(0, 40, -120)
+    propeller.Position = body.Position + Vector3.new(110, 0, 0)
+    fin.Position = body.Position + Vector3.new(0, 70, -120)
+    leftEngine.Position = body.Position + Vector3.new(-60, -10, 60)
+    rightEngine.Position = body.Position + Vector3.new(60, -10, 60)
+
+    model.Parent = workspace
+
+    return model, body, {
+        cockpit, leftWing, rightWing, tail, propeller, fin, leftEngine, rightEngine
+    }
+end
+
+local function dropNukeWithShockwave(targetPosition)
+    -- Super detailed, realistic nuke bomb
+
+    -- Main bomb body (cylinder)
+    local nuke = Instance.new("Part")
+    nuke.Name = "Nuke"
+    nuke.Size = Vector3.new(30, 120, 30)
+    nuke.Position = targetPosition
+    nuke.Anchored = false
+    nuke.CanCollide = true
+    nuke.BrickColor = BrickColor.new("Dark stone grey")
+    nuke.Material = Enum.Material.Metal
+    nuke.TopSurface = Enum.SurfaceType.Smooth
+    nuke.BottomSurface = Enum.SurfaceType.Smooth
+
+    local mesh = Instance.new("CylinderMesh", nuke)
+    mesh.Scale = Vector3.new(1, 1, 1)
+
+    -- Nose cone (hemisphere)
+    local nose = Instance.new("Part")
+    nose.Name = "NukeNose"
+    nose.Shape = Enum.PartType.Ball
+    nose.Size = Vector3.new(30, 30, 30)
+    nose.Position = targetPosition + Vector3.new(0, 75, 0)
+    nose.Anchored = false
+    nose.CanCollide = true
+    nose.BrickColor = BrickColor.new("Bright red")
+    nose.Material = Enum.Material.Neon
+    nose.TopSurface = Enum.SurfaceType.Smooth
+    nose.BottomSurface = Enum.SurfaceType.Smooth
+    nose.Parent = workspace
+
+    -- Weld nose to body
+    local weldNose = Instance.new("WeldConstraint")
+    weldNose.Part0 = nuke
+    weldNose.Part1 = nose
+    weldNose.Parent = nuke
+
+    -- Tail fins (4)
+    local tailFins = {}
+    for i = 1, 4 do
+        local fin = Instance.new("Part")
+        fin.Name = "TailFin"..i
+        fin.Size = Vector3.new(4, 30, 16)
+        fin.Anchored = false
+        fin.CanCollide = true
+        fin.BrickColor = BrickColor.new("Really black")
+        fin.Material = Enum.Material.Metal
+        fin.Parent = workspace
+        -- Position fins at the base, rotated around the cylinder
+        local angle = math.rad((i-1)*90)
+        local offset = Vector3.new(math.cos(angle)*15, -60, math.sin(angle)*15)
+        fin.Position = targetPosition + offset
+        fin.Orientation = Vector3.new(0, (i-1)*90, 30)
+        -- Weld to nuke
+        local weldFin = Instance.new("WeldConstraint")
+        weldFin.Part0 = nuke
+        weldFin.Part1 = fin
+        weldFin.Parent = nuke
+        table.insert(tailFins, fin)
+    end
+
+    -- Tail ring
+    local tailRing = Instance.new("Part")
+    tailRing.Name = "TailRing"
+    tailRing.Size = Vector3.new(36, 2, 36)
+    tailRing.Anchored = false
+    tailRing.CanCollide = true
+    tailRing.BrickColor = BrickColor.new("Medium stone grey")
+    tailRing.Material = Enum.Material.Metal
+    tailRing.Shape = Enum.PartType.Cylinder
+    tailRing.Position = targetPosition + Vector3.new(0, -60, 0)
+    tailRing.Orientation = Vector3.new(0, 0, 0)
+    tailRing.Parent = workspace
+
+    local weldRing = Instance.new("WeldConstraint")
+    weldRing.Part0 = nuke
+    weldRing.Part1 = tailRing
+    weldRing.Parent = nuke
+
+    -- Guidance stripes (decals)
+    local stripe = Instance.new("Part")
+    stripe.Name = "GuidanceStripe"
+    stripe.Size = Vector3.new(32, 2, 32)
+    stripe.Anchored = false
+    stripe.CanCollide = false
+    stripe.BrickColor = BrickColor.new("Institutional white")
+    stripe.Material = Enum.Material.Neon
+    stripe.Shape = Enum.PartType.Cylinder
+    stripe.Position = targetPosition + Vector3.new(0, 30, 0)
+    stripe.Orientation = Vector3.new(0, 0, 0)
+    stripe.Parent = workspace
+
+    local weldStripe = Instance.new("WeldConstraint")
+    weldStripe.Part0 = nuke
+    weldStripe.Part1 = stripe
+    weldStripe.Parent = nuke
+
+    -- Arming panel (small detail)
+    local armingPanel = Instance.new("Part")
+    armingPanel.Name = "ArmingPanel"
+    armingPanel.Size = Vector3.new(8, 2, 8)
+    armingPanel.Anchored = false
+    armingPanel.CanCollide = false
+    armingPanel.BrickColor = BrickColor.new("Bright blue")
+    armingPanel.Material = Enum.Material.SmoothPlastic
+    armingPanel.Position = targetPosition + Vector3.new(12, 0, 0)
+    armingPanel.Parent = workspace
+
+    local weldPanel = Instance.new("WeldConstraint")
+    weldPanel.Part0 = nuke
+    weldPanel.Part1 = armingPanel
+    weldPanel.Parent = nuke
+
+    -- Radiation symbol decal
+    local decal = Instance.new("Decal")
+    decal.Texture = "rbxassetid://104921907" -- classic radiation symbol
+    decal.Face = Enum.NormalId.Front
+    decal.Parent = nuke
+
+    -- Add all parts to workspace and weld to nuke
+    nuke.Parent = workspace
+
+    -- Sound: falling whistle
+    local fallSound = Instance.new("Sound")
+    fallSound.SoundId = "rbxassetid://9118828562" -- bomb falling whistle
+    fallSound.Volume = 1
+    fallSound.Looped = true
+    fallSound.Parent = nuke
+    fallSound:Play()
+
+    -- Smoke trail
+    local smoke = Instance.new("ParticleEmitter")
+    smoke.Texture = "rbxassetid://771221224"
+    smoke.Size = NumberSequence.new({NumberSequenceKeypoint.new(0, 6), NumberSequenceKeypoint.new(1, 12)})
+    smoke.Lifetime = NumberRange.new(1, 2)
+    smoke.Rate = 100
+    smoke.Speed = NumberRange.new(2, 6)
+    smoke.Rotation = NumberRange.new(0, 360)
+    smoke.RotSpeed = NumberRange.new(-30, 30)
+    smoke.Color = ColorSequence.new(Color3.new(0.2,0.2,0.2), Color3.new(0.5,0.5,0.5))
+    smoke.Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0, 0.2), NumberSequenceKeypoint.new(1, 1)})
+    smoke.Parent = nuke
+
+    -- Explosion logic
+    local exploded = false
+    local connection
+    connection = RunService.Heartbeat:Connect(function()
+        if not exploded and nuke.Position.Y < 20 then
+            exploded = true
+            fallSound:Stop()
+            smoke.Enabled = false
+
+            -- Initial flash
+            local flash = Instance.new("Part")
+            flash.Name = "NukeFlash"
+            flash.Anchored = true
+            flash.CanCollide = false
+            flash.Transparency = 0.7
+            flash.Size = Vector3.new(1, 1, 1)
+            flash.Position = nuke.Position
+            flash.Shape = Enum.PartType.Ball
+            flash.BrickColor = BrickColor.new("Institutional white")
+            flash.Material = Enum.Material.Neon
+            flash.Parent = workspace
+
+            local TweenService = game:GetService("TweenService")
+            local flashGoal = {Size = Vector3.new(300, 300, 300), Transparency = 1}
+            local flashTween = TweenService:Create(flash, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), flashGoal)
+            flashTween:Play()
+            flashTween.Completed:Connect(function()
+                flash:Destroy()
+            end)
+
+            -- Explosion sound
+            local boom = Instance.new("Sound")
+            boom.SoundId = "rbxassetid://138186576" -- nuke explosion
+            boom.Volume = 2
+            boom.Parent = workspace
+            boom.Position = nuke.Position
+            boom:Play()
+            game:GetService("Debris"):AddItem(boom, 5)
+
+            -- Main explosion
+            local explosion = Instance.new("Explosion")
+            explosion.Position = nuke.Position
+            explosion.BlastRadius = 800
+            explosion.BlastPressure = 10000000
+            explosion.DestroyJointRadiusPercent = 1
+            explosion.ExplosionType = Enum.ExplosionType.NoCraters
+            explosion.Parent = workspace
+
+            -- Mushroom cloud
+            local function createMushroomCloud(center)
+                -- Stem
+                for i = 1, 10 do
+                    local stem = Instance.new("Part")
+                    stem.Name = "CloudStem"
+                    stem.Anchored = true
+                    stem.CanCollide = false
+                    stem.Size = Vector3.new(30 + i*2, 30 + i*2, 30 + i*2)
+                    stem.Position = center + Vector3.new(0, 20 + i*20, 0)
+                    stem.Shape = Enum.PartType.Ball
+                    stem.BrickColor = BrickColor.new("Medium stone grey")
+                    stem.Material = Enum.Material.Neon
+                    stem.Transparency = 0.5 + i*0.04
+                    stem.Parent = workspace
+                    local t = TweenService:Create(stem, TweenInfo.new(2, Enum.EasingStyle.Quad), {Transparency = 1, Size = stem.Size * 2})
+                    t:Play()
+                    t.Completed:Connect(function() stem:Destroy() end)
+                end
+                -- Cap
+                for i = 1, 8 do
+                    local cap = Instance.new("Part")
+                    cap.Name = "CloudCap"
+                    cap.Anchored = true
+                    cap.CanCollide = false
+                    cap.Size = Vector3.new(200 + i*30, 40 + i*10, 200 + i*30)
+                    cap.Position = center + Vector3.new(0, 220 + i*10, 0)
+                    cap.Shape = Enum.PartType.Ball
+                    cap.BrickColor = BrickColor.new("Institutional white")
+                    cap.Material = Enum.Material.Neon
+                    cap.Transparency = 0.6 + i*0.04
+                    cap.Parent = workspace
+                    local t = TweenService:Create(cap, TweenInfo.new(3, Enum.EasingStyle.Quad), {Transparency = 1, Size = cap.Size * 1.5})
+                    t:Play()
+                    t.Completed:Connect(function() cap:Destroy() end)
+                end
+            end
+            createMushroomCloud(nuke.Position)
+
+            -- Shockwave ring
+            local shockwave = Instance.new("Part")
+            shockwave.Name = "Shockwave"
+            shockwave.Anchored = true
+            shockwave.CanCollide = false
+            shockwave.Transparency = 0.3
+            shockwave.Size = Vector3.new(1, 1, 1)
+            shockwave.Position = nuke.Position
+            shockwave.Shape = Enum.PartType.Ball
+            shockwave.BrickColor = BrickColor.new("Institutional white")
+            shockwave.Material = Enum.Material.Neon
+            shockwave.Parent = workspace
+
+            local shockwaveGoal = {Size = Vector3.new(1200, 1200, 1200), Transparency = 1}
+            local shockwaveTween = TweenService:Create(shockwave, TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), shockwaveGoal)
+            shockwaveTween:Play()
+            shockwaveTween.Completed:Connect(function()
+                shockwave:Destroy()
+            end)
+
+            -- Blinding effect for local player
+            if Players.LocalPlayer and Players.LocalPlayer.PlayerGui then
+                local gui = Instance.new("ScreenGui")
+                gui.Name = "NukeFlashGui"
+                gui.IgnoreGuiInset = true
+                gui.ResetOnSpawn = false
+                gui.Parent = Players.LocalPlayer.PlayerGui
+
+                local flashFrame = Instance.new("Frame")
+                flashFrame.BackgroundColor3 = Color3.new(1,1,1)
+                flashFrame.Size = UDim2.new(1,0,1,0)
+                flashFrame.BackgroundTransparency = 0.2
+                flashFrame.Parent = gui
+
+                local flashTween = game:GetService("TweenService"):Create(flashFrame, TweenInfo.new(1.5, Enum.EasingStyle.Quad), {BackgroundTransparency = 1})
+                flashTween:Play()
+                flashTween.Completed:Connect(function()
+                    gui:Destroy()
+                end)
+            end
+
+            -- Fallout particles
+            for i = 1, 30 do
+                local fallout = Instance.new("Part")
+                fallout.Name = "FalloutParticle"
+                fallout.Anchored = false
+                fallout.CanCollide = false
+                fallout.Size = Vector3.new(2,2,2)
+                fallout.Position = nuke.Position + Vector3.new(math.random(-200,200), 200 + math.random(0,100), math.random(-200,200))
+                fallout.BrickColor = BrickColor.new("Dark stone grey")
+                fallout.Material = Enum.Material.Slate
+                fallout.Transparency = 0.7
+                fallout.Parent = workspace
+                local bodyVelocity = Instance.new("BodyVelocity")
+                bodyVelocity.Velocity = Vector3.new(math.random(-10,10), -math.random(10,30), math.random(-10,10))
+                bodyVelocity.P = 1000
+                bodyVelocity.MaxForce = Vector3.new(1e5,1e5,1e5)
+                bodyVelocity.Parent = fallout
+                game:GetService("Debris"):AddItem(fallout, 10)
+            end
+
+            -- Remove all bomb parts
+            nuke:Destroy()
+            nose:Destroy()
+            tailRing:Destroy()
+            stripe:Destroy()
+            armingPanel:Destroy()
+            for _, fin in ipairs(tailFins) do
+                fin:Destroy()
+            end
+
+            connection:Disconnect()
+        end
+    end)
+end
+
+if RunService:IsClient() then
+    local airplane, body, parts = createSuperBigAirplane()
+    local flying = true
+    local speed = 10
+    local dropDone = false
+
+    local char = LocalPlayer.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    local dropOffset = 100
+    local dropPosition
+    if root then
+        dropPosition = root.Position + (root.CFrame.LookVector * dropOffset)
+    else
+        dropPosition = workspace.CurrentCamera.CFrame.Position + workspace.CurrentCamera.CFrame.LookVector * dropOffset
+    end
+
+    RunService.RenderStepped:Connect(function(dt)
+        if flying and body then
+            body.Position = body.Position + Vector3.new(0, 0, speed)
+            parts[1].Position = body.Position + Vector3.new(90, 20, 0)
+            parts[2].Position = body.Position + Vector3.new(-60, 10, 0)
+            parts[3].Position = body.Position + Vector3.new(60, 10, 0)
+            parts[4].Position = body.Position + Vector3.new(0, 40, -120)
+            parts[5].Position = body.Position + Vector3.new(110, 0, 0)
+            parts[6].Position = body.Position + Vector3.new(0, 70, -120)
+            parts[7].Position = body.Position + Vector3.new(-60, -10, 60)
+            parts[8].Position = body.Position + Vector3.new(60, -10, 60)
+
+            if not dropDone and math.abs(body.Position.X - dropPosition.X) < 80 and math.abs(body.Position.Z - dropPosition.Z) < 80 then
+                local dropNukePos = Vector3.new(dropPosition.X, body.Position.Y - 60, dropPosition.Z)
+                dropNukeWithShockwave(dropNukePos)
+                dropDone = true
+            end
+
+            if body.Position.Z > dropPosition.Z + 1200 then
+                flying = false
+                airplane:Destroy()
+            end
+        end
+    end)
+end
+
+
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+
+local function equipGunFromBackpack()
+    local backpack = LocalPlayer:FindFirstChild("Backpack")
+    if not backpack then return nil end
+    for _, item in ipairs(backpack:GetChildren()) do
+        if item:IsA("Tool") then
+            local gunScriptLocal = item:FindFirstChild("GunScript_Local")
+            if gunScriptLocal then
+                local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+                if humanoid then
+                    humanoid:EquipTool(item)
+                    for _, v in ipairs(item:GetDescendants()) do
+                        if v:IsA("BasePart") then
+                            v.LocalTransparencyModifier = 1
+                        end
+                    end
+                    return item
+                end
+            end
+        end
+    end
+    for _, desc in ipairs(backpack:GetDescendants()) do
+        if desc.Name == "GunScript_Local" and desc.Parent and desc.Parent:IsA("Tool") then
+            local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid:EquipTool(desc.Parent)
+                for _, v in ipairs(desc.Parent:GetDescendants()) do
+                    if v:IsA("BasePart") then
+                        v.LocalTransparencyModifier = 1
+                    end
+                end
+                return desc.Parent
+            end
+        end
+    end
+    return nil
+end
+
+function dmg(target, hpart, damage)
+    game:GetService("ReplicatedStorage").InflictTarget:FireServer(
+        LocalPlayer.Character:FindFirstChildWhichIsA("Tool"),
+        LocalPlayer,
+        target.Character.Humanoid,
+        target.Character[hpart],
+        damage,
+        {0, 0, false, false,
+            LocalPlayer.Character:FindFirstChildWhichIsA("Tool").GunScript_Server.IgniteScript,
+            LocalPlayer.Character:FindFirstChildWhichIsA("Tool").GunScript_Server.IcifyScript,
+            100, 100},
+        {false, 5, 3},
+        target.Character[hpart],
+        {false, {1930359546}, 1, 1.5, 1},
+        nil,
+        nil,
+        true)
+end
+
+local equippedConnection = nil
+
+local function onEquipped(gun)
+    if gun and gun.Parent and gun.Parent:IsA("Tool") and gun.Parent:FindFirstChild("GunScript_Local") then
+        local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid:EquipTool(gun.Parent)
+            for _, v in ipairs(gun.Parent:GetDescendants()) do
+                if v:IsA("BasePart") then
+                    v.LocalTransparencyModifier = 1
+                end
+            end
+        end
+    end
+
+    if equippedConnection then
+        equippedConnection:Disconnect()
+        equippedConnection = nil
+    end
+    equippedConnection = UserInputService.InputBegan:Connect(function(input, processed)
+        if not processed and input.UserInputType == Enum.UserInputType.MouseButton1 then
+            local char = LocalPlayer.Character
+            if not char or not gun.Parent or gun.Parent ~= char then return end
+            for _, plr in ipairs(Players:GetPlayers()) do
+                if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Humanoid") then
+                    local hitParts = {"Head", "Torso", "HumanoidRootPart"}
+                    local randomHitPart = hitParts[math.random(1, #hitParts)]
+                    local randomDamage = math.random(900, 1200)
+                    pcall(function()
+                        dmg(plr, randomHitPart, randomDamage)
+                    end)
+                end
+            end
+        end
+    end)
+end
+
+local function setupGunListener()
+    local function connectToGun(tool)
+        if tool:IsA("Tool") and (tool:FindFirstChild("GunScript_Local") or tool:FindFirstChild("GunScript_Server")) then
+            tool.Equipped:Connect(function()
+                onEquipped(tool)
+            end)
+            tool.Unequipped:Connect(function()
+                if equippedConnection then
+                    equippedConnection:Disconnect()
+                    equippedConnection = nil
+                end
+            end)
+        end
+    end
+
+    if LocalPlayer.Character then
+        for _, tool in ipairs(LocalPlayer.Character:GetChildren()) do
+            connectToGun(tool)
+        end
+        LocalPlayer.Character.ChildAdded:Connect(connectToGun)
+    end
+
+    LocalPlayer.CharacterAdded:Connect(function(char)
+        char.ChildAdded:Connect(connectToGun)
+        for _, tool in ipairs(char:GetChildren()) do
+            connectToGun(tool)
+        end
+    end)
+end
+
+local gun = equipGunFromBackpack()
+if not gun then
+    game.StarterGui:SetCore("SendNotification", {
+        Title = "No Gun";
+        Text = "No gun found in your inventory.";
+        Duration = 3;
+    })
+end
+setupGunListener()
+task.wait(1)
+local VirtualInputManager = game:GetService("VirtualInputManager")
+VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
+VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
+task.wait(2)
+VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
+task.wait(1)
+VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
+task.wait(1)
+VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
