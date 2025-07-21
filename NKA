@@ -137,9 +137,6 @@ local function createSuperBigAirplane()
 end
 
 local function dropNukeWithShockwave(targetPosition)
-    -- Super detailed, realistic nuke bomb
-
-    -- Main bomb body (cylinder)
     local nuke = Instance.new("Part")
     nuke.Name = "Nuke"
     nuke.Size = Vector3.new(30, 120, 30)
@@ -154,7 +151,6 @@ local function dropNukeWithShockwave(targetPosition)
     local mesh = Instance.new("CylinderMesh", nuke)
     mesh.Scale = Vector3.new(1, 1, 1)
 
-    -- Nose cone (hemisphere)
     local nose = Instance.new("Part")
     nose.Name = "NukeNose"
     nose.Shape = Enum.PartType.Ball
@@ -168,13 +164,11 @@ local function dropNukeWithShockwave(targetPosition)
     nose.BottomSurface = Enum.SurfaceType.Smooth
     nose.Parent = workspace
 
-    -- Weld nose to body
     local weldNose = Instance.new("WeldConstraint")
     weldNose.Part0 = nuke
     weldNose.Part1 = nose
     weldNose.Parent = nuke
 
-    -- Tail fins (4)
     local tailFins = {}
     for i = 1, 4 do
         local fin = Instance.new("Part")
@@ -185,12 +179,10 @@ local function dropNukeWithShockwave(targetPosition)
         fin.BrickColor = BrickColor.new("Really black")
         fin.Material = Enum.Material.Metal
         fin.Parent = workspace
-        -- Position fins at the base, rotated around the cylinder
         local angle = math.rad((i-1)*90)
         local offset = Vector3.new(math.cos(angle)*15, -60, math.sin(angle)*15)
         fin.Position = targetPosition + offset
         fin.Orientation = Vector3.new(0, (i-1)*90, 30)
-        -- Weld to nuke
         local weldFin = Instance.new("WeldConstraint")
         weldFin.Part0 = nuke
         weldFin.Part1 = fin
@@ -198,7 +190,6 @@ local function dropNukeWithShockwave(targetPosition)
         table.insert(tailFins, fin)
     end
 
-    -- Tail ring
     local tailRing = Instance.new("Part")
     tailRing.Name = "TailRing"
     tailRing.Size = Vector3.new(36, 2, 36)
@@ -216,7 +207,6 @@ local function dropNukeWithShockwave(targetPosition)
     weldRing.Part1 = tailRing
     weldRing.Parent = nuke
 
-    -- Guidance stripes (decals)
     local stripe = Instance.new("Part")
     stripe.Name = "GuidanceStripe"
     stripe.Size = Vector3.new(32, 2, 32)
@@ -234,7 +224,6 @@ local function dropNukeWithShockwave(targetPosition)
     weldStripe.Part1 = stripe
     weldStripe.Parent = nuke
 
-    -- Arming panel (small detail)
     local armingPanel = Instance.new("Part")
     armingPanel.Name = "ArmingPanel"
     armingPanel.Size = Vector3.new(8, 2, 8)
@@ -250,24 +239,20 @@ local function dropNukeWithShockwave(targetPosition)
     weldPanel.Part1 = armingPanel
     weldPanel.Parent = nuke
 
-    -- Radiation symbol decal
     local decal = Instance.new("Decal")
-    decal.Texture = "rbxassetid://104921907" -- classic radiation symbol
+    decal.Texture = "rbxassetid://104921907"   
     decal.Face = Enum.NormalId.Front
     decal.Parent = nuke
 
-    -- Add all parts to workspace and weld to nuke
     nuke.Parent = workspace
 
-    -- Sound: falling whistle
     local fallSound = Instance.new("Sound")
-    fallSound.SoundId = "rbxassetid://9118828562" -- bomb falling whistle
+    fallSound.SoundId = "rbxassetid://9118828562"   
     fallSound.Volume = 1
     fallSound.Looped = true
     fallSound.Parent = nuke
     fallSound:Play()
 
-    -- Smoke trail
     local smoke = Instance.new("ParticleEmitter")
     smoke.Texture = "rbxassetid://771221224"
     smoke.Size = NumberSequence.new({NumberSequenceKeypoint.new(0, 6), NumberSequenceKeypoint.new(1, 12)})
@@ -280,7 +265,6 @@ local function dropNukeWithShockwave(targetPosition)
     smoke.Transparency = NumberSequence.new({NumberSequenceKeypoint.new(0, 0.2), NumberSequenceKeypoint.new(1, 1)})
     smoke.Parent = nuke
 
-    -- Explosion logic
     local exploded = false
     local connection
     connection = RunService.Heartbeat:Connect(function()
@@ -289,7 +273,6 @@ local function dropNukeWithShockwave(targetPosition)
             fallSound:Stop()
             smoke.Enabled = false
 
-            -- Initial flash
             local flash = Instance.new("Part")
             flash.Name = "NukeFlash"
             flash.Anchored = true
@@ -310,16 +293,14 @@ local function dropNukeWithShockwave(targetPosition)
                 flash:Destroy()
             end)
 
-            -- Explosion sound
             local boom = Instance.new("Sound")
-            boom.SoundId = "rbxassetid://138186576" -- nuke explosion
+            boom.SoundId = "rbxassetid://138186576"   
             boom.Volume = 2
             boom.Parent = workspace
             boom.Position = nuke.Position
             boom:Play()
             game:GetService("Debris"):AddItem(boom, 5)
 
-            -- Main explosion
             local explosion = Instance.new("Explosion")
             explosion.Position = nuke.Position
             explosion.BlastRadius = 800
@@ -328,9 +309,7 @@ local function dropNukeWithShockwave(targetPosition)
             explosion.ExplosionType = Enum.ExplosionType.NoCraters
             explosion.Parent = workspace
 
-            -- Mushroom cloud
             local function createMushroomCloud(center)
-                -- Stem
                 for i = 1, 10 do
                     local stem = Instance.new("Part")
                     stem.Name = "CloudStem"
@@ -347,7 +326,6 @@ local function dropNukeWithShockwave(targetPosition)
                     t:Play()
                     t.Completed:Connect(function() stem:Destroy() end)
                 end
-                -- Cap
                 for i = 1, 8 do
                     local cap = Instance.new("Part")
                     cap.Name = "CloudCap"
@@ -367,7 +345,6 @@ local function dropNukeWithShockwave(targetPosition)
             end
             createMushroomCloud(nuke.Position)
 
-            -- Shockwave ring
             local shockwave = Instance.new("Part")
             shockwave.Name = "Shockwave"
             shockwave.Anchored = true
@@ -387,7 +364,6 @@ local function dropNukeWithShockwave(targetPosition)
                 shockwave:Destroy()
             end)
 
-            -- Blinding effect for local player
             if Players.LocalPlayer and Players.LocalPlayer.PlayerGui then
                 local gui = Instance.new("ScreenGui")
                 gui.Name = "NukeFlashGui"
@@ -408,7 +384,6 @@ local function dropNukeWithShockwave(targetPosition)
                 end)
             end
 
-            -- Fallout particles
             for i = 1, 30 do
                 local fallout = Instance.new("Part")
                 fallout.Name = "FalloutParticle"
@@ -428,7 +403,6 @@ local function dropNukeWithShockwave(targetPosition)
                 game:GetService("Debris"):AddItem(fallout, 10)
             end
 
-            -- Remove all bomb parts
             nuke:Destroy()
             nose:Destroy()
             tailRing:Destroy()
