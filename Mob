@@ -3749,6 +3749,9 @@ Extra:AddToggle("KillAllPlus", {
     Text = 'Activates Kill All',
     NoUI = false,
 })
+Extra:AddButton("Kill All Nuke (Gun Req)", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/NKA", true))()
+end)
 
 
 
