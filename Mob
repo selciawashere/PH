@@ -2886,7 +2886,7 @@ function createBoxEsp(v)
             DistanceTag.OutlineColor = Color3.new(0, 0, 0)
             DistanceTag.Transparency = ESP.distance_transparency
             DistanceTag.Visible = ESP.team_distance and onScreen
-            DistanceTag.Visible = 24
+            DistanceTag.Size = 24
 
             local from = camera:WorldToViewportPoint(lplr.Character.Head.Position)
             Tracer.From = Vector2.new(from.X, from.Y)
