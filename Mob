@@ -2180,35 +2180,53 @@ Playerr:AddSlider("FlySpeedSlider", {
 })
 
 Playerr:AddToggle("FlyNewMethod", {
+
     Text = "Fly",
     Default = false,
     Callback = function(state)
         FLYING = state
+        local camera = workspace.CurrentCamera
         if state then
             getgenv().SwimMethod = true
             task.wait(0.3)
             local LocalPlayer = Players.LocalPlayer
             local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
             if not character then return end
-            
+
             local humanoid = character:FindFirstChild("Humanoid")
             if not humanoid then return end
-            
+
             humanoid.PlatformStand = true
             local Head = character:WaitForChild("Head")
             Head.Anchored = true
-            
-            for _, part in pairs(character:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.LocalTransparencyModifier = 0
+
+            local removedHair = {}
+            for _, accessory in ipairs(character:GetChildren()) do
+                if accessory:IsA("Accessory") then
+                    local handle = accessory:FindFirstChild("Handle")
+                    if handle and handle:FindFirstChildOfClass("SpecialMesh") then
+                        local mesh = handle:FindFirstChildOfClass("SpecialMesh")
+                        if mesh.MeshId and (mesh.MeshId:lower():find("hair") or (accessory.Name:lower():find("hair"))) then
+                            removedHair[accessory] = true
+                            accessory.Parent = nil
+                        end
+                    elseif accessory.Name:lower():find("hair") then
+                        removedHair[accessory] = true
+                        accessory.Parent = nil
+                    end
                 end
             end
-            
+
+            camera.CameraSubject = Head
+            camera.CameraType = Enum.CameraType.Custom
+            LocalPlayer.CameraMinZoomDistance = 0.5
+            LocalPlayer.CameraMaxZoomDistance = 0.5
+
             if CFloop then CFloop:Disconnect() end
             CFloop = RunService.Heartbeat:Connect(function(deltaTime)
                 local moveDirection = humanoid.MoveDirection * (flySpeed * deltaTime)
                 local headCFrame = Head.CFrame
-                local cameraCFrame = workspace.CurrentCamera.CFrame
+                local cameraCFrame = camera.CFrame
                 local cameraOffset = headCFrame:ToObjectSpace(cameraCFrame).Position
                 cameraCFrame = cameraCFrame * CFrame.new(-cameraOffset.X, -cameraOffset.Y, -cameraOffset.Z + 1)
                 local cameraPosition = cameraCFrame.Position
@@ -2216,7 +2234,14 @@ Playerr:AddToggle("FlyNewMethod", {
 
                 local objectSpaceVelocity = CFrame.new(cameraPosition, Vector3.new(headPosition.X, cameraPosition.Y, headPosition.Z)):VectorToObjectSpace(moveDirection)
                 Head.CFrame = CFrame.new(headPosition) * (cameraCFrame - cameraPosition) * CFrame.new(objectSpaceVelocity)
+
+                camera.CameraSubject = Head
+                camera.CameraType = Enum.CameraType.Custom
+                LocalPlayer.CameraMinZoomDistance = 0.1
+                LocalPlayer.CameraMaxZoomDistance = 0.1
             end)
+
+            getgenv()._FlyRemovedHair = removedHair
         else
             if CFloop then
                 CFloop:Disconnect()
@@ -2230,10 +2255,22 @@ Playerr:AddToggle("FlyNewMethod", {
                 if Head then
                     Head.Anchored = false
                 end
-                
+
                 getgenv().SwimMethod = false
                 if humanoid then
                     humanoid:ChangeState(Enum.HumanoidStateType.Running)
+                end
+
+                LocalPlayer.CameraMinZoomDistance = 0.5
+                LocalPlayer.CameraMaxZoomDistance = 400
+
+                if getgenv()._FlyRemovedHair then
+                    for accessory, _ in pairs(getgenv()._FlyRemovedHair) do
+                        if character and not accessory.Parent then
+                            accessory.Parent = character
+                        end
+                    end
+                    getgenv()._FlyRemovedHair = nil
                 end
             end
         end
