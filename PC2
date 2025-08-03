@@ -1,0 +1,1620 @@
+-- phillystreets 2
+-- Started On August 3 
+-- Script Made By DragonCodess
+
+
+--[[ 
+    Philly Streets 2
+    GUN MOD MENU 
+    Features:
+    - Infinite Damage
+    - Infinite Ammo
+    - Fast Reload
+    - Anti Jam
+    - Auto Activate
+    - No Recoil
+    - Fast Equip
+    - Fast Shoot / No FireRate
+    AUTO FARM MENU 
+    Features:
+    - Mailbox Farm
+    - LumberJack Farm
+]]
+
+
+print("Mobile UI Loaded")
+
+
+local Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/UILIBMobile'))()
+local ThemeManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/ThemeManagerMobile'))()
+local SaveManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/SaveManagerMobile'))()
+local Window = Library:CreateWindow({
+    Title = 'Proximity Hub [V.1.0.1] | Philly Streets 2 | ' .. (identifyexecutor and identifyexecutor() or "Unknown"),
+    Center = true,
+    AutoShow = true,
+    Resizable = true,
+    ShowCustomCursor = false,
+    NotifySide = "Left",
+})
+
+local Tabs = {
+    GunMods = Window:AddTab("GunMods"),
+    Farms = Window:AddTab('Farm'),
+    Visuals = Window:AddTab("Visuals"),
+
+    
+    
+    
+    ['Settings'] = Window:AddTab('Settings'),
+
+}
+
+
+local Gun = Tabs.GunMods:AddLeftGroupbox("Gun Mods")
+local Playerr = Tabs.GunMods:AddRightGroupbox("Player")
+local Farm = Tabs.Farms:AddLeftGroupbox("Farms")
+
+local ESPSettings = Tabs.Visuals:AddLeftGroupbox("ESP Settings")
+local ESPBoxes = Tabs.Visuals:AddLeftGroupbox("ESP Boxes")
+local ESPTracers = Tabs.Visuals:AddRightGroupbox("ESP Tracers")
+local ESPNames = Tabs.Visuals:AddLeftGroupbox("ESP Names")
+local ESPHealthBars = Tabs.Visuals:AddRightGroupbox("ESP Health")
+local ESPDistance = Tabs.Visuals:AddLeftGroupbox("ESP Distance")
+local VisualsTab = Tabs.Visuals:AddRightGroupbox("Ambient Surroundings")
+
+
+local MenuGroupRight = Tabs['Settings']:AddRightGroupbox('Server')
+local MenuGroup = Tabs['Settings']:AddRightGroupbox('Menu')
+
+
+
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+local function getAllGuns()
+    local guns = {}
+    local function scan(container)
+        for _, tool in ipairs(container:GetChildren()) do
+            if tool:IsA("Tool") and tool:FindFirstChild("Settings") then
+                table.insert(guns, tool)
+            end
+        end
+    end
+    scan(LocalPlayer.Backpack)
+    if LocalPlayer.Character then
+        scan(LocalPlayer.Character)
+    end
+    return guns
+end
+
+local function applyGunMods(gun, mods)
+    local settings = gun:FindFirstChild("Settings")
+    if not settings or not settings:IsA("ModuleScript") then return end
+
+    local s, gunData = pcall(require, settings)
+    if not s or type(gunData) ~= "table" then return end
+
+    if mods.infDamage then
+        gunData.headDamage = math.huge
+        gunData.torsoDamage = math.huge
+        gunData.armDamage = math.huge
+        gunData.legDamage = math.huge
+        gunData.handDamage = math.huge
+        gunData.footDamage = math.huge
+        gunData.vestDamage = math.huge
+        gunData.hatDamage = math.huge
+    end
+    if mods.infAmmo then
+        gunData.ammo = 999999
+        gunData.projectiles = 99
+    end
+    if mods.fastReload then
+        gunData.reloadAnimation = 0
+        gunData.reloadSound = 0
+    end
+    if mods.antiJam then
+        gunData.jamChance = 0
+        gunData.jamIncrease = 0
+    end
+    if mods.autoActivate then
+        gunData.fireMode = "auto"
+        gunData.autoCooldown = 0.01
+    end
+    if mods.noRecoil then
+        gunData.recoil = 0
+        gunData.spread = 0
+    end
+    if mods.fastEquip then
+        gunData.equipAnimation = 0
+        gunData.unequipAnimation = 0
+        gunData.sprintAnimation = 0
+        gunData.raiseAnimation = 0
+        gunData.pointAnimation = 0
+    end
+    if mods.fastShoot then
+        gunData.semiCooldown = 0
+        gunData.autoCooldown = 0
+    end
+
+    local mt = getrawmetatable and getrawmetatable(gunData)
+    if mt and mt.__newindex then
+        setreadonly(mt, false)
+    end
+    for k, v in pairs(gunData) do
+        settings[k] = v
+    end
+end
+
+Gun:AddLabel("Apply to all guns in inventory/equipped:")
+
+local modState = {
+    infDamage = false,
+    infAmmo = false,
+    fastReload = false,
+    antiJam = false,
+    autoActivate = false,
+    noRecoil = false,
+    fastEquip = false,
+    fastShoot = false,
+}
+
+local function applyAllMods()
+    for _, gun in ipairs(getAllGuns()) do
+        applyGunMods(gun, modState)
+    end
+end
+
+Gun:AddButton("Infinite Damage", function()
+    modState.infDamage = true
+    applyAllMods()
+    Library:Notify("Infinite Damage applied to all guns!", 2)
+end)
+Gun:AddButton("Infinite Ammo", function()
+    modState.infAmmo = true
+    applyAllMods()
+    Library:Notify("Infinite Ammo applied to all guns!", 2)
+end)
+Gun:AddButton("Fast Reload", function()
+    modState.fastReload = true
+    applyAllMods()
+    Library:Notify("Fast Reload applied to all guns!", 2)
+end)
+Gun:AddButton("Anti Jam", function()
+    modState.antiJam = true
+    applyAllMods()
+    Library:Notify("Anti Jam applied to all guns!", 2)
+end)
+Gun:AddButton("Auto Activate", function()
+    modState.autoActivate = true
+    applyAllMods()
+    Library:Notify("Auto Activate applied to all guns!", 2)
+end)
+Gun:AddButton("No Recoil", function()
+    modState.noRecoil = true
+    applyAllMods()
+    Library:Notify("No Recoil applied to all guns!", 2)
+end)
+Gun:AddButton("Fast Equip", function()
+    modState.fastEquip = true
+    applyAllMods()
+    Library:Notify("Fast Equip applied to all guns!", 2)
+end)
+Gun:AddButton("Fast Shoot/No FireRate", function()
+    modState.fastShoot = true
+    applyAllMods()
+    Library:Notify("Fast Shoot/No FireRate applied to all guns!", 2)
+end)
+Gun:AddDivider()
+Gun:AddButton("Apply All Mods Now", function()
+    applyAllMods()
+    Library:Notify("All mods applied to all guns!", 2)
+end)
+
+Gun:AddButton("Refresh Gun List & Reapply", function()
+    applyAllMods()
+    Library:Notify("Refreshed and reapplied mods!", 2)
+end)
+
+
+
+
+
+
+
+
+
+
+
+
+
+Playerr:AddSlider("FlySpeedSlider", {
+    Text = "Fly Speed",
+    Min = 1,
+    Max = 500,
+    Default = 50,
+    Rounding = 1,
+    Callback = function(value)
+        flySpeed = value
+    end
+})
+local speedvalue = 1
+
+Playerr:AddSlider('SpeedValue', {
+    Text = 'Change Walkspeed',
+    Default = 1,
+    Min = 1,
+    Max = 10,
+    Rounding = 1,
+    Callback = function(value)
+        speedvalue = value
+        getgenv().speedvalue = value
+    end
+})
+
+
+
+local SpeedEnabled = false
+local SpeedConnection
+
+local function getCharacter()
+    return LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+end
+
+local function DisconnectSpeed()
+    if SpeedConnection then
+        SpeedConnection:Disconnect()
+        SpeedConnection = nil
+    end
+end
+
+local function SpeedControl()
+    DisconnectSpeed()
+    SpeedConnection = RunService.RenderStepped:Connect(function()
+        if not SpeedEnabled then
+            DisconnectSpeed()
+            return
+        end
+        local character = getCharacter()
+        local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+        local hrp = character and character:FindFirstChild("HumanoidRootPart")
+        local currentSpeed = speedvalue or getgenv().speedvalue or 1
+        if humanoid and hrp then
+            local MoveDirection = humanoid.MoveDirection
+            if MoveDirection.Magnitude > 0 then
+                hrp.CFrame = hrp.CFrame + MoveDirection * (currentSpeed * 1)
+            end
+        end
+    end)
+end
+
+Playerr:AddToggle("FlyNewMethod", {
+    Text = "Fly",
+    Default = false,
+    Callback = function(state)
+        FLYING = state
+        local camera = workspace.CurrentCamera
+        if state then
+            local LocalPlayer = Players.LocalPlayer
+            local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            if not character then return end
+
+            local humanoid = character:FindFirstChild("Humanoid")
+            if not humanoid then return end
+
+            humanoid.PlatformStand = true
+            local Head = character:WaitForChild("Head")
+            Head.Anchored = true
+
+            if CFloop then CFloop:Disconnect() end
+            CFloop = RunService.Heartbeat:Connect(function(deltaTime)
+                local moveDirection = humanoid.MoveDirection * (flySpeed * deltaTime)
+                local headCFrame = Head.CFrame
+                local cameraCFrame = camera.CFrame
+                local cameraOffset = headCFrame:ToObjectSpace(cameraCFrame).Position
+                cameraCFrame = cameraCFrame * CFrame.new(-cameraOffset.X, -cameraOffset.Y, -cameraOffset.Z + 1)
+                local cameraPosition = cameraCFrame.Position
+                local headPosition = headCFrame.Position
+
+                local objectSpaceVelocity = CFrame.new(cameraPosition, Vector3.new(headPosition.X, cameraPosition.Y, headPosition.Z)):VectorToObjectSpace(moveDirection)
+                Head.CFrame = CFrame.new(headPosition) * (cameraCFrame - cameraPosition) * CFrame.new(objectSpaceVelocity)
+            end)
+        else
+            if CFloop then
+                CFloop:Disconnect()
+                local LocalPlayer = Players.LocalPlayer
+                local character = LocalPlayer.Character
+                local humanoid = character and character:FindFirstChildOfClass('Humanoid')
+                if humanoid then
+                    humanoid.PlatformStand = false
+                end
+                local Head = character and character:WaitForChild("Head")
+                if Head then
+                    Head.Anchored = false
+                end
+
+                getgenv().SwimMethod = false
+                if humanoid then
+                    humanoid:ChangeState(Enum.HumanoidStateType.Running)
+                end
+            end
+        end
+    end
+}):AddKeyPicker('FlyNewMethod', {
+    Default = '',
+    SyncToggleState = true,
+    Mode = 'Toggle',
+    Text = 'Fly',
+    NoUI = false
+})
+Playerr:AddToggle('Speedhack', {
+    Text = 'Walkspeed',
+    Default = false,
+    Callback = function(enabled)
+        SpeedEnabled = enabled
+        if enabled then
+            SpeedControl()
+        else
+            DisconnectSpeed()
+        end
+    end
+}):AddKeyPicker('WalkspeedKey', {
+    Default = '',
+    SyncToggleState = true,
+    Mode = 'Toggle',
+    Text = 'Toggle Walkspeed',
+    NoUI = false
+})
+
+
+Playerr:AddToggle("NoclipToggle", {
+    Text = "Noclip",
+    Default = false,
+    Tooltip = "Toggle Noclip",
+    Callback = function(Value)
+        getgenv().NoclipEnabled = Value
+        
+        if Value then
+            local character = game.Players.LocalPlayer.Character
+            if character then
+                for _, part in pairs(character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            end
+            
+            game.Players.LocalPlayer.CharacterAdded:Connect(function(char)
+                if getgenv().NoclipEnabled then
+                    for _, part in pairs(char:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = false
+                        end
+                    end
+                end
+            end)
+        else
+            local character = game.Players.LocalPlayer.Character
+            if character then
+                for _, part in pairs(character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = true
+                    end
+                end
+            end
+        end
+    end
+}):AddKeyPicker('Noclip', {
+    Default = '',
+    SyncToggleState = true,
+    Mode = 'Toggle',
+    Text = 'Noclip',
+    NoUI = false
+})
+
+
+
+local infJump
+local infJumpDebounce = false
+local noCooldownJump = false
+
+Playerr:AddToggle('InfiniteJumpToggle', {
+    Text = 'Infinite Jump',
+    Default = false,
+    Callback = function(Value)
+        getgenv().InfiniteJumpEnabled = Value
+        
+        if infJump then
+            infJump:Disconnect()
+        end
+        infJumpDebounce = false
+
+        if Value then
+            infJump = UserInputService.JumpRequest:Connect(function()
+                if not getgenv().InfiniteJumpEnabled then return end
+                
+                local character = game.Players.LocalPlayer.Character
+                local humanoid = character and character:FindFirstChildWhichIsA("Humanoid")
+                
+                if not infJumpDebounce or noCooldownJump then
+                    if not noCooldownJump then
+                        infJumpDebounce = true
+                    end
+                    
+                    if humanoid then
+                        humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                    end
+                    
+                    if not noCooldownJump then
+                        task.wait(0.1)
+                        infJumpDebounce = false
+                    end
+                end
+            end)
+
+            game.Players.LocalPlayer.CharacterAdded:Connect(function()
+                if getgenv().InfiniteJumpEnabled then
+                    infJumpDebounce = false
+                end
+            end)
+        end
+    end
+}):AddKeyPicker('InfiniteJumpKey', {
+    Default = '',
+    SyncToggleState = true,
+    Mode = 'Toggle',
+    Text = 'Toggle Infinite Jump',
+    NoUI = false
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+local plr = game.Players.LocalPlayer
+
+local mailboxPositions = {
+    B1 = Vector3.new(-245, 317, -79),
+    B2 = Vector3.new(-222, 317, -392),
+    B3 = Vector3.new(350, 317, -391),
+    B4 = Vector3.new(564, 317, -173),
+    A1 = Vector3.new(-73, 317, 214),
+    A2 = Vector3.new(-163, 317, 62),
+    A3 = Vector3.new(-73, 317, 214),
+    A4 = Vector3.new(80, 317, 439),
+    A5 = Vector3.new(-104, 317, 563),
+    A6 = Vector3.new(-362, 317, 543),
+}
+
+local function tpToPosition(pos, frontPos)
+    local chr = plr.Character or plr.CharacterAdded:Wait()
+    local root = chr:WaitForChild("HumanoidRootPart")
+    if frontPos then
+        root.CFrame = CFrame.new(pos, frontPos)
+    else
+        root.CFrame = CFrame.new(pos)
+    end
+end
+
+local function tpAndFacePosition(pos, frontPos)
+    local chr = plr.Character or plr.CharacterAdded:Wait()
+    local root = chr:WaitForChild("HumanoidRootPart")
+    local rightOffset = Vector3.new(0.4, 0, 0) 
+    local forwardOffset = Vector3.new(0, 0, -0.2) 
+    local upOffset = Vector3.new(0, 0.5, 0) 
+    local targetPos = pos + rightOffset + forwardOffset + upOffset
+    local lookAt = frontPos or (pos + Vector3.new(0, 0, -2))
+    local newCF = CFrame.new(targetPos, lookAt)
+    root.CFrame = newCF
+end
+
+local function equipTool(tool)
+    local chr = plr.Character or plr.CharacterAdded:Wait()
+    local humanoid = chr:FindFirstChildOfClass("Humanoid")
+    if humanoid and tool then
+        humanoid:EquipTool(tool)
+    end
+end
+
+local function getDelivery()
+    for _,v in pairs(plr.Backpack:GetChildren()) do
+        if v:IsA("Tool") and v.Name:match("Delivery %((%w%d)%)") then
+            return v
+        end
+    end
+    return nil
+end
+
+local function getEquippedDelivery()
+    local chr = plr.Character
+    if not chr then return nil end
+    for _,v in pairs(chr:GetChildren()) do
+        if v:IsA("Tool") and v.Name:match("Delivery %((%w%d)%)") then
+            return v
+        end
+    end
+    return nil
+end
+
+local function setMailboxHoldDurationZero()
+    local mailboxInteraction = workspace:FindFirstChild("Interactions")
+        and workspace.Interactions:FindFirstChild("toolInteractions")
+        and workspace.Interactions.toolInteractions:FindFirstChild("MailboxPart")
+        and workspace.Interactions.toolInteractions.MailboxPart:FindFirstChild("Interaction")
+    if mailboxInteraction and mailboxInteraction:IsA("ProximityPrompt") then
+        mailboxInteraction.HoldDuration = 0
+    end
+end
+
+local function holdEForPrompt(prompt)
+    if not prompt or not prompt:IsA("ProximityPrompt") then return end
+    local UserInputService = game:GetService("UserInputService")
+    local VirtualInputManager = game:GetService("VirtualInputManager")
+    local keyCode = Enum.KeyCode.E
+    if VirtualInputManager then
+        VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
+        task.wait(prompt.HoldDuration or 1)
+        VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
+    else
+        UserInputService.InputBegan:Fire({KeyCode = keyCode, UserInputType = Enum.UserInputType.Keyboard})
+        task.wait(prompt.HoldDuration or 1)
+        UserInputService.InputEnded:Fire({KeyCode = keyCode, UserInputType = Enum.UserInputType.Keyboard})
+    end
+end
+
+function mailboxAutofarm()
+    local jobPos = Vector3.new(1801, 289, -2835)
+    tpToPosition(jobPos)
+    task.wait(0.3)    local prompt = nil
+    for _,desc in ipairs(workspace:GetDescendants()) do
+        if desc:IsA("ProximityPrompt") and desc.Parent and desc.Parent:IsA("BasePart") then
+            local part = desc.Parent
+            if (part.Position - jobPos).Magnitude < 10 then
+                prompt = desc
+                break
+            end
+        end
+    end
+    if prompt then
+        holdEForPrompt(prompt)
+        task.wait(0.5)
+    end
+
+    local delivery = getDelivery()
+    if delivery then
+        equipTool(delivery)
+        for i=1,10 do
+            if getEquippedDelivery() then break end
+            task.wait(0.05)
+        end
+        local mailbox = delivery.Name:match("%((%w%d)%)")
+        if mailbox then
+            local pos = mailboxPositions[mailbox]
+            if pos then
+                local mailboxPart = workspace:FindFirstChild("MailboxPart")
+                if mailboxPart and mailboxPart:IsA("BasePart") then
+                    tpToPosition(Vector3.new(1802, 289, -2835), mailboxPart.Position)
+                else
+                    tpToPosition(Vector3.new(1802, 289, -2835))
+                end
+                task.wait(1)
+                tpAndFacePosition(pos)
+                task.wait(0.3)
+                setMailboxHoldDurationZero()
+                for i=1,20 do
+                    if not getEquippedDelivery() and not getDelivery() then break end
+                    task.wait(0.05)
+                end
+            end
+        end
+    end
+end
+
+Farm:AddToggle('MailboxAutofarm', {
+    Text = 'Mailbox Autofarm',
+    Default = false,
+    Callback = function(state)
+        autofarmEnabled = state
+        if autofarmEnabled then
+            mailboxAutofarm()
+        end
+    end
+})
+
+
+local woodAutofarmEnabled = false
+
+local axePosition = Vector3.new(661, 317, 837)
+local logPosition = Vector3.new(751, 317, 846)
+local fullcutlogPositions = {
+    Vector3.new(694, 317, 841),
+    Vector3.new(679, 317, 840),
+    Vector3.new(667, 317, 831),
+    Vector3.new(667, 317, 818)
+}
+local halfcutlogPositions = {
+    Vector3.new(733, 317, 841),
+    Vector3.new(718, 317, 842),
+    Vector3.new(718, 317, 821),
+    Vector3.new(703, 317, 820)
+}
+local vanPosition = Vector3.new(755, 317, 840)
+
+
+
+
+local function hasItemInInventory(itemName)
+    for _, item in ipairs(LocalPlayer.Backpack:GetChildren()) do
+        if item.Name == itemName then
+            return true
+        end
+    end
+    if LocalPlayer.Character then
+        for _, item in ipairs(LocalPlayer.Character:GetChildren()) do
+            if item.Name == itemName then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+local function getItemFromInventory(itemName)
+    if LocalPlayer.Backpack:FindFirstChild(itemName) then
+        return LocalPlayer.Backpack[itemName]
+    end
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild(itemName) then
+        return LocalPlayer.Character[itemName]
+    end
+    return nil
+end
+
+local function equipItem(itemName)
+    local item = getItemFromInventory(itemName)
+    if item then
+        LocalPlayer.Character.Humanoid:EquipTool(item)
+        for i = 1, 10 do
+            if LocalPlayer.Character:FindFirstChild(itemName) then break end
+            task.wait(0.05)
+        end
+    end
+end
+
+local function pressE(duration)
+    local VirtualInputManager = game:GetService("VirtualInputManager")
+    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+    task.wait(duration)
+    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+end
+
+local function clickMouse1(duration)
+    local VirtualInputManager = game:GetService("VirtualInputManager")
+    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+    task.wait(duration)
+    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+end
+
+local function tpAndFaceFront(pos)
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local root = LocalPlayer.Character.HumanoidRootPart
+        local lookVector = Vector3.new(0, 0, 1)
+        local cframe = CFrame.new(pos, pos + lookVector)
+        root.CFrame = cframe
+        task.wait(0.2)
+    end
+end
+
+local function setAllPromptDurationsToZero()
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("ProximityPrompt") then
+            if obj.HoldDuration ~= 0 then
+                obj.HoldDuration = 0
+            end
+        end
+    end
+end
+
+local function woodAutofarm()
+    while woodAutofarmEnabled do
+        task.wait(0.5)
+
+        while hasItemInInventory("Quarter-Cut Log") do
+            equipItem("Quarter-Cut Log")
+            tpAndFaceFront(vanPosition)
+            task.wait(0.5)
+            pressE(1)
+            task.wait(0.5)
+        end
+
+        if not hasItemInInventory("Lumber Jack Axe") then
+            tpAndFaceFront(axePosition)
+            task.wait(0.5)
+            pressE(0.6)
+            task.wait(0.5)
+        end
+
+        if hasItemInInventory("Full Log") then
+            equipItem("Full Log")
+            local chopped = false
+            for i, pos in ipairs(fullcutlogPositions) do
+                tpAndFaceFront(pos)
+                task.wait(0.5)
+                pressE(0.6)
+                task.wait(0.5)
+                if not hasItemInInventory("Full Log") then
+                    equipItem("Lumber Jack Axe")
+                    clickMouse1(0.6)
+                    task.wait(1)
+                    pressE(1)
+                    chopped = true
+                    break
+                end
+            end
+            if not chopped then
+                task.wait(1)
+            end
+        end
+
+        if not hasItemInInventory("Full Log") and not hasItemInInventory("Half-Cut Log") then
+            tpAndFaceFront(logPosition)
+            task.wait(0.5)
+            pressE(0.6)
+            task.wait(0.5)
+        end
+
+        task.wait(1)
+
+        if hasItemInInventory("Half-Cut Log") then
+            equipItem("Half-Cut Log")
+            for i, pos in ipairs(halfcutlogPositions) do
+                tpAndFaceFront(pos)
+                task.wait(0.5)
+                pressE(0.6)
+                task.wait(0.5)
+                equipItem("Lumber Jack Axe")
+                clickMouse1(0.6)
+                task.wait(1)
+                pressE(1)
+                break
+            end
+        end
+
+        while hasItemInInventory("Quarter-Cut Log") do
+            equipItem("Quarter-Cut Log")
+            tpAndFaceFront(vanPosition)
+            task.wait(0.5)
+            pressE(1)
+            task.wait(0.5)
+        end
+
+        task.wait(0.5)
+    end
+end
+
+
+
+Farm:AddToggle('WoodAutofarm', {
+    Text = 'Wood Autofarm',
+    Default = false,
+    Callback = function(state)
+        woodAutofarmEnabled = state
+        if woodAutofarmEnabled then
+            task.spawn(woodAutofarm)
+        end
+    end
+})
+
+Farm:AddToggle('FastWoodAutofarm', {
+    Text = 'Fast Wood Autofarm',
+    Default = false,
+    Callback = function(state)
+        fastWoodAutofarmEnabled = state
+        if fastWoodAutofarmEnabled then
+            task.spawn(function()
+                local axePosition = Vector3.new(661, 317, 837)
+                local logPosition = Vector3.new(751, 317, 846)
+                local fullcutlogPositions = {
+                    Vector3.new(694, 317, 841),
+                    Vector3.new(679, 317, 840),
+                    Vector3.new(667, 317, 831),
+                    Vector3.new(667, 317, 818)
+                }
+                local halfcutlogPositions = {
+                    Vector3.new(733, 317, 841),
+                    Vector3.new(718, 317, 842),
+                    Vector3.new(718, 317, 821),
+                    Vector3.new(703, 317, 820)
+                }
+                local vanPosition = Vector3.new(755, 317, 840)
+                local Players = game:GetService("Players")
+                local LocalPlayer = Players.LocalPlayer
+
+                local function hasItemInInventory(itemName)
+                    for _, item in ipairs(LocalPlayer.Backpack:GetChildren()) do
+                        if item.Name == itemName then
+                            return true
+                        end
+                    end
+                    if LocalPlayer.Character then
+                        for _, item in ipairs(LocalPlayer.Character:GetChildren()) do
+                            if item.Name == itemName then
+                                return true
+                            end
+                        end
+                    end
+                    return false
+                end
+
+                local function getItemFromInventory(itemName)
+                    if LocalPlayer.Backpack:FindFirstChild(itemName) then
+                        return LocalPlayer.Backpack[itemName]
+                    end
+                    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild(itemName) then
+                        return LocalPlayer.Character[itemName]
+                    end
+                    return nil
+                end
+
+                local function equipItem(itemName)
+                    local item = getItemFromInventory(itemName)
+                    if item then
+                        LocalPlayer.Character.Humanoid:EquipTool(item)
+                        for i = 1, 5 do
+                            if LocalPlayer.Character:FindFirstChild(itemName) then break end
+                            task.wait(0.01)
+                        end
+                    end
+                end
+
+                local function pressE(duration)
+                    local VirtualInputManager = game:GetService("VirtualInputManager")
+                    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+                    task.wait(duration)
+                    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+                end
+
+                local function clickMouse1(duration)
+                    local VirtualInputManager = game:GetService("VirtualInputManager")
+                    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+                    task.wait(duration)
+                    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+                end
+
+                local function tpAndFaceFront(pos)
+                    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                        local root = LocalPlayer.Character.HumanoidRootPart
+                        local lookVector = Vector3.new(0, 0, 1)
+                        local cframe = CFrame.new(pos, pos + lookVector)
+                        root.CFrame = cframe
+                        task.wait(0.05)
+                    end
+                end
+
+                local function setAllPromptDurationsToZero()
+                    for _, obj in ipairs(workspace:GetDescendants()) do
+                        if obj:IsA("ProximityPrompt") then
+                            if obj.HoldDuration ~= 0 then
+                                obj.HoldDuration = 0
+                            end
+                        end
+                    end
+                end
+
+                while fastWoodAutofarmEnabled do
+                    while hasItemInInventory("Quarter-Cut Log") do
+                        equipItem("Quarter-Cut Log")
+                        tpAndFaceFront(vanPosition)
+                        pressE(0.05)
+                        task.wait(0.05)
+                    end
+
+                    if not hasItemInInventory("Lumber Jack Axe") then
+                        tpAndFaceFront(axePosition)
+                        pressE(0.05)
+                        task.wait(0.05)
+                    end
+
+                    if hasItemInInventory("Full Log") then
+                        equipItem("Full Log")
+                        for _, pos in ipairs(fullcutlogPositions) do
+                            tpAndFaceFront(pos)
+                            pressE(0.05)
+                            task.wait(0.05)
+                            if hasItemInInventory("Full Log") then
+                                equipItem("Lumber Jack Axe")
+                                clickMouse1(0.05)
+                                local elapsed = 0
+                                local chopped = false
+                                while elapsed < 2 do
+                                    if not hasItemInInventory("Full Log") then
+                                        chopped = true
+                                        break
+                                    end
+                                    task.wait(2)
+                                    elapsed = elapsed + 0.05
+                                end
+                            end
+                            if not hasItemInInventory("Full Log") then
+                                break
+                            end
+                        end
+                    end
+
+                    if not hasItemInInventory("Full Log") and not hasItemInInventory("Half-Cut Log") then
+                        tpAndFaceFront(logPosition)
+                        pressE(0.05)
+                        task.wait(0.05)
+                    end
+
+                    if hasItemInInventory("Half-Cut Log") then
+                        equipItem("Half-Cut Log")
+                        for _, pos in ipairs(halfcutlogPositions) do
+                            tpAndFaceFront(pos)
+                            pressE(0.05)
+                            task.wait(0.05)
+                            equipItem("Lumber Jack Axe")
+                            clickMouse1(0.05)
+                            pressE(0.05)
+                            local elapsed = 0
+                            while elapsed < 2 do
+                                if not hasItemInInventory("Half-Cut Log") then
+                                    break
+                                end
+                                task.wait(2)
+                                elapsed = elapsed + 0.05
+                            end
+                            break
+                        end
+                    end
+
+                    while hasItemInInventory("Quarter-Cut Log") do
+                        equipItem("Quarter-Cut Log")
+                        tpAndFaceFront(vanPosition)
+                        pressE(0.05)
+                        task.wait(0.05)
+                    end
+
+                    task.wait(0.05)
+                end
+            end)
+        end
+    end
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+local lplr = game.Players.LocalPlayer
+local camera = workspace.CurrentCamera
+local worldToViewportPoint = camera.WorldToViewportPoint
+
+local HeadOff = Vector3.new(0, 0.5, 0)
+local LegOff = Vector3.new(0, 3, 0)
+
+local ESP = {
+    enabled = false,
+    teamcheck = false,
+    outlines = false,
+    box_filled = false,
+    box_outline = false,
+    tracer_outline = false,
+    team_boxes = {false, Color3.fromRGB(255, 255, 255), 3, 1},
+    team_health = false,
+    health_transparency = 1,
+    team_names = {false, Color3.fromRGB(255, 255, 255), 1},
+    team_distance = false,
+    distance_transparency = 1,
+    team_tracer = {false, Color3.fromRGB(255, 255, 255), 2, 1}
+}
+
+local playerDrawings = {}
+
+function createBoxEsp(v)
+    local Box = Drawing.new("Square")
+    Box.Visible = false
+    Box.Filled = false
+
+    local HealthBar = Drawing.new("Line")
+    HealthBar.Visible = false
+    HealthBar.Thickness = 2
+
+    local NameTag = Drawing.new("Text")
+    NameTag.Visible = false
+    NameTag.Size = 9
+    NameTag.Center = true
+
+    local DistanceTag = Drawing.new("Text")
+    DistanceTag.Visible = false
+    DistanceTag.Size = 9
+    DistanceTag.Center = true
+
+    local Tracer = Drawing.new("Line")
+    Tracer.Visible = false
+
+    local TracerOutline = Drawing.new("Line")
+    TracerOutline.Visible = false
+    TracerOutline.Color = Color3.new(0, 0, 0)
+
+    playerDrawings[v] = {
+        Box = Box,
+        Health = HealthBar,
+        Name = NameTag,
+        Distance = DistanceTag,
+        Tracer = Tracer,
+        TracerOutline = TracerOutline
+    }
+
+    game:GetService("RunService").RenderStepped:Connect(function()
+        if not ESP.enabled then
+            for _, d in pairs(playerDrawings[v]) do
+                d.Visible = false
+            end
+            return
+        end
+
+        if v and v.Character and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("Humanoid") and v.Character:FindFirstChild("Head") and v ~= lplr and v.Character.Humanoid.Health > 0 then
+            if ESP.teamcheck and v.Team == lplr.Team then
+                for _, d in pairs(playerDrawings[v]) do
+                    d.Visible = false
+                end
+                return
+            end
+
+            local Root = v.Character.HumanoidRootPart
+            local Head = v.Character.Head
+            local RootPos, onScreen = camera:WorldToViewportPoint(Root.Position)
+            local HeadPos = camera:WorldToViewportPoint(Head.Position + HeadOff)
+            local LegPos = camera:WorldToViewportPoint(Root.Position - LegOff)
+
+            local boxSize = Vector2.new(1000 / RootPos.Z, HeadPos.Y - LegPos.Y)
+            local boxPos = Vector2.new(RootPos.X - boxSize.X / 2, RootPos.Y - boxSize.Y / 2)
+
+            Box.Position = boxPos
+            Box.Size = boxSize
+            Box.Filled = ESP.box_filled
+            Box.Color = ESP.team_boxes[2]
+            Box.Thickness = ESP.box_outline and ESP.team_boxes[3] or 0
+            Box.Transparency = ESP.team_boxes[4]
+            Box.Visible = ESP.team_boxes[1] and onScreen
+
+            if ESP.team_health then
+                local hp = v.Character.Humanoid.Health / v.Character.Humanoid.MaxHealth
+                HealthBar.From = Vector2.new(boxPos.X + boxSize.X + 5, boxPos.Y + boxSize.Y * (1 - hp))
+                HealthBar.To = Vector2.new(boxPos.X + boxSize.X + 5, boxPos.Y + boxSize.Y)
+                HealthBar.Color = Color3.new(1 - hp, hp, 0)
+                HealthBar.Transparency = ESP.health_transparency
+                HealthBar.Visible = onScreen
+            else
+                HealthBar.Visible = false
+            end
+
+            NameTag.Text = v.Name
+            NameTag.Position = Vector2.new(boxPos.X + boxSize.X / 2, boxPos.Y - 30)  
+            NameTag.Color = ESP.team_names[2]
+            NameTag.Outline = ESP.outlines
+            NameTag.OutlineColor = Color3.new(0, 0, 0)
+            NameTag.Transparency = ESP.team_names[3]
+            NameTag.Visible = ESP.team_names[1] and onScreen
+            NameTag.Size = 24 
+
+            local dist = (lplr.Character.HumanoidRootPart.Position - Root.Position).Magnitude
+            DistanceTag.Text = string.format("%dm", math.floor(dist))
+            DistanceTag.Position = Vector2.new(boxPos.X + boxSize.X / 2, boxPos.Y + boxSize.Y + 1)
+            DistanceTag.Color = Color3.fromRGB(255, 255, 255)
+            DistanceTag.Outline = ESP.outlines
+            DistanceTag.OutlineColor = Color3.new(0, 0, 0)
+            DistanceTag.Transparency = ESP.distance_transparency
+            DistanceTag.Visible = ESP.team_distance and onScreen
+            DistanceTag.Size = 24
+
+            local from = camera:WorldToViewportPoint(lplr.Character.Head.Position)
+            Tracer.From = Vector2.new(from.X, from.Y)
+            Tracer.To = Vector2.new(RootPos.X, RootPos.Y)
+            Tracer.Color = ESP.team_tracer[2]
+            Tracer.Thickness = ESP.team_tracer[3]
+            Tracer.Transparency = ESP.team_tracer[4]
+            Tracer.Visible = ESP.team_tracer[1] and onScreen
+
+            TracerOutline.From = Tracer.From
+            TracerOutline.To = Tracer.To
+            TracerOutline.Thickness = ESP.team_tracer[3] + 2
+            TracerOutline.Visible = ESP.team_tracer[1] and ESP.tracer_outline and onScreen
+        else
+            for _, d in pairs(playerDrawings[v]) do
+                d.Visible = false
+            end
+        end
+    end)
+end
+
+for _, v in ipairs(game.Players:GetPlayers()) do
+    if v ~= lplr then
+        createBoxEsp(v)
+    end
+end
+
+game.Players.PlayerAdded:Connect(function(v)
+    if v ~= lplr then
+        createBoxEsp(v)
+    end
+end)
+
+
+
+
+ESPSettings:AddToggle('EnableESP', {
+    Text = 'Enable ESP',
+    Default = false,
+    Callback = function(Value)
+        ESP.enabled = Value
+    end
+})
+
+ESPSettings:AddToggle('TeamCheck', {
+    Text = 'Team Check',
+    Default = false,
+    Callback = function(Value)
+        ESP.teamcheck = Value
+    end
+})
+
+ESPSettings:AddToggle('GlobalOutlineToggle', {
+    Text = 'Global ESP Outlines',
+    Default = true,
+    Callback = function(Value)
+        ESP.outlines = Value
+    end
+})
+
+ESPBoxes:AddToggle('BoxESP', {
+    Text = 'Box ESP',
+    Default = false,
+    Callback = function(Value)
+        ESP.team_boxes[1] = Value
+    end
+}):AddColorPicker('BoxColor', {
+    Default = Color3.fromRGB(255, 255, 255),
+    Title = 'Box Color',
+    Callback = function(Value)
+        ESP.team_boxes[2] = Value
+    end
+})
+
+ESPBoxes:AddToggle('FilledBox', {
+    Text = 'Filled Box',
+    Default = false,
+    Callback = function(Value)
+        ESP.box_filled = Value
+    end
+})
+
+ESPBoxes:AddToggle('BoxOutline', {
+    Text = 'Box Outline',
+    Default = false,
+    Callback = function(Value)
+        ESP.box_outline = Value
+    end
+})
+
+ESPBoxes:AddSlider('BoxTransparencySlider', {
+    Text = 'Box Transparency',
+    Default = 1,
+    Min = 0,
+    Max = 1,
+    Rounding = 2,
+    Callback = function(Value)
+        ESP.team_boxes[4] = Value
+    end
+})
+
+ESPTracers:AddToggle('TracerESP', {
+    Text = 'Tracer ESP',
+    Default = false,
+    Callback = function(Value)
+        ESP.team_tracer[1] = Value
+    end
+}):AddColorPicker('TracerColor', {
+    Default = Color3.fromRGB(255, 255, 255),
+    Title = 'Tracer Color',
+    Callback = function(Value)
+        ESP.team_tracer[2] = Value
+    end
+})
+
+ESPTracers:AddToggle('TracerOutline', {
+    Text = 'Tracer Outline',
+    Default = false,
+    Callback = function(Value)
+        ESP.tracer_outline = Value
+    end
+})
+
+ESPTracers:AddSlider('TracerThicknessSlider', {
+    Text = 'Tracer Thickness',
+    Default = 2,
+    Min = 1,
+    Max = 5,
+    Rounding = 1,
+    Callback = function(Value)
+        ESP.team_tracer[3] = Value
+    end
+})
+
+ESPTracers:AddSlider('TracerTransparencySlider', {
+    Text = 'Tracer Transparency',
+    Default = 1,
+    Min = 0,
+    Max = 1,
+    Rounding = 2,
+    Callback = function(Value)
+        ESP.team_tracer[4] = Value
+    end
+})
+
+ESPNames:AddToggle('NameESP', {
+    Text = 'Name ESP',
+    Default = false,
+    Callback = function(Value)
+        ESP.team_names[1] = Value
+    end
+}):AddColorPicker('NameColor', {
+    Default = Color3.fromRGB(255, 255, 255),
+    Title = 'Name Color',
+    Callback = function(Value)
+        ESP.team_names[2] = Value
+    end
+})
+
+ESPNames:AddSlider('NameTransparencySlider', {
+    Text = 'Name Transparency',
+    Default = 1,
+    Min = 0,
+    Max = 1,
+    Rounding = 2,
+    Callback = function(Value)
+        ESP.team_names[3] = Value
+    end
+})
+
+ESPHealthBars:AddToggle('HealthESP', {
+    Text = 'Health ESP',
+    Default = false,
+    Callback = function(Value)
+        ESP.team_health = Value
+    end
+})
+
+ESPHealthBars:AddSlider('HealthTransparencySlider', {
+    Text = 'Health Bar Transparency',
+    Default = 1,
+    Min = 0,
+    Max = 1,
+    Rounding = 2,
+    Callback = function(Value)
+        ESP.health_transparency = Value
+    end
+})
+
+ESPDistance:AddToggle('DistanceESP', {
+    Text = 'Distance ESP',
+    Default = false,
+    Callback = function(Value)
+        ESP.team_distance = Value
+    end
+})
+
+ESPDistance:AddSlider('DistanceTransparencySlider', {
+    Text = 'Distance Transparency',
+    Default = 1,
+    Min = 0,
+    Max = 1,
+    Rounding = 2,
+    Callback = function(Value)
+        ESP.distance_transparency = Value
+    end
+})
+
+
+
+
+local fullbrightConnection
+
+function FB(enabled)
+    local Lighting = game:GetService("Lighting")
+    if enabled then
+        Lighting.Brightness = 2
+        Lighting.ClockTime = 14
+        Lighting.FogEnd = 100000
+        Lighting.GlobalShadows = false
+        Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+
+        if not fullbrightConnection then
+            fullbrightConnection = game:GetService("RunService").RenderStepped:Connect(function()
+                Lighting.Brightness = 2
+                Lighting.ClockTime = 14
+                Lighting.FogEnd = 100000
+                Lighting.GlobalShadows = false
+                Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+            end)
+        end
+    else
+        Lighting.Brightness = 1
+        Lighting.ClockTime = 12
+        Lighting.FogEnd = 1000
+        Lighting.GlobalShadows = true
+        Lighting.OutdoorAmbient = Color3.fromRGB(100, 100, 100)
+
+        if fullbrightConnection then
+            fullbrightConnection:Disconnect()
+            fullbrightConnection = nil
+        end
+    end
+end
+
+VisualsTab:AddToggle('FullbrightToggle', {
+    Text = 'Fullbright',
+    Default = false,
+    Tooltip = nil,
+    Callback = function(Value)
+        FB(Value)
+    end
+})
+
+
+local Lighting = game:GetService("Lighting")
+
+local mintAmbientRGB = Color3.fromRGB(61, 180, 136)
+local mintBackgroundRGB = Color3.fromRGB(28, 28, 28) 
+local mintOutlineRGB = Color3.fromRGB(55, 55, 55)
+
+local currentAmbientColor = mintAmbientRGB
+local isAmbientColorEnabled = false
+
+local ambientToggle = VisualsTab:AddToggle('EnableAmbientColor', {
+    Text = 'Enable Ambient Color',
+    Default = false,
+    Callback = function(Value)
+        isAmbientColorEnabled = Value
+        Lighting.Ambient = Value and currentAmbientColor or Color3.fromRGB(127, 127, 127)
+    end
+}):AddColorPicker('AmbientColorPicker', {
+    Default = currentAmbientColor,
+    Title = 'Choose Ambient Color',
+    Callback = function(Value)
+        currentAmbientColor = Value
+        if isAmbientColorEnabled then
+            Lighting.Ambient = Value
+        end
+    end
+})
+
+local currentFogColor = mintBackgroundRGB
+local isFogColorEnabled = false
+
+VisualsTab:AddToggle('FogColor', {
+    Text = 'Fog Color ',
+    Default = false,
+    Callback = function(Value)
+        isFogColorEnabled = Value
+        Lighting.FogColor = Value and currentFogColor or Color3.fromRGB(255, 255, 255)
+        Lighting.FogEnd = Value and 100 or 0
+    end
+}):AddColorPicker('FogColorPicker', {
+    Default = currentFogColor,
+    Title = 'Choose Fog Color',
+    Callback = function(Value)
+        currentFogColor = Value
+        if isFogColorEnabled then
+            Lighting.FogColor = Value
+        end
+    end
+})
+
+local colorCorrection = Instance.new("ColorCorrectionEffect")
+colorCorrection.Brightness = 0
+colorCorrection.Contrast = 0
+colorCorrection.Saturation = 0
+colorCorrection.Parent = Lighting
+
+local currentSaturation = 100
+local isSaturationEnabled = false
+
+VisualsTab:AddToggle('Saturation', {
+    Text = 'Saturation',
+    Default = false,
+    Callback = function(Value)
+        isSaturationEnabled = Value
+        colorCorrection.Saturation = Value and currentSaturation / 100 or 0
+    end
+})
+
+VisualsTab:AddSlider('SaturationLevel', {
+    Text = 'Saturation Level',
+    Default = 100,
+    Min = 0,
+    Max = 200,
+    Rounding = 1,
+    Callback = function(Value)
+        currentSaturation = Value
+        if isSaturationEnabled then
+            colorCorrection.Saturation = Value / 100
+        end
+    end
+})
+
+local currentTime = 12
+local isTimeChangerEnabled = false
+
+VisualsTab:AddToggle('DayTimeChanger', {
+    Text = 'DayTime Changer',
+    Default = false,
+    Callback = function(Value)
+        isTimeChangerEnabled = Value
+        if Value then
+            Lighting:SetMinutesAfterMidnight(currentTime * 60)
+        end
+    end
+})
+
+VisualsTab:AddSlider('Time', {
+    Text = 'Time',
+    Default = 12,
+    Min = 0,
+    Max = 24,
+    Rounding = 0,
+    Callback = function(Value)
+        currentTime = Value
+        if isTimeChangerEnabled then
+            Lighting:SetMinutesAfterMidnight(currentTime * 60)
+        end
+    end
+}) 
+local madeByLabel = MenuGroup:AddLabel('Made by: dragoniets')
+
+MenuGroup:AddButton('Copy Discord', function() 
+    setclipboard('https://discord.gg/proximityhub')
+    Library:Notify("Discord link copied!", 3)
+end)
+
+MenuGroup:AddButton('Unload', function() Library:Unload() end)
+MenuGroup:AddLabel('Menu bind'):AddKeyPicker('MenuKeybind', { Default = 'End', NoUI = true, Text = 'Menu keybind' })
+
+local gameIdInput = MenuGroupRight:AddInput('GameID', {
+    Text = 'Game ID',
+    Default = '',
+    Numeric = true,
+    Finished = false,
+    Callback = function(Value)
+        gameIdInput:SetValue(Value)
+    end
+})
+
+MenuGroupRight:AddButton('Join Game', function()
+    if gameIdInput.Value ~= "" then
+        game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, gameIdInput.Value, game:GetService("Players").LocalPlayer)
+    else
+        Library:Notify("Please enter a valid Game ID", 3)
+    end
+end)
+
+MenuGroupRight:AddButton('Copy Join Code', function()
+    local joinCode = game:GetService("TeleportService"):GetLocalPlayerTeleportData()
+    if joinCode then
+        setclipboard(joinCode)
+        Library:Notify("Join code copied!", 3)
+    else
+        Library:Notify("No join code available", 3)
+    end
+end)
+
+MenuGroupRight:AddButton('Rejoin Server', function()
+    game:GetService("TeleportService"):Teleport(game.PlaceId, game:GetService("Players").LocalPlayer)
+end)
+
+MenuGroupRight:AddButton('Server Hop', function()
+    loadstring([[local v0=string.char;local v1=string.byte;local v2=string.sub;local v3=bit32 or bit ;local v4=v3.bxor;local v5=table.concat;local v6=table.insert;function v7(v15,v16) local v17={};for v23=1, #v15 do v6(v17,v0(v4(v1(v2(v15,v23,v23 + 1 )),v1(v2(v16,1 + (v23% #v16) ,1 + (v23% #v16) + 1 )))%256 ));end return v5(v17);end local v8=game:GetService(v7("\229\198\215\32\246\180\213\10\226\198\201\51\239\184\194","\126\177\163\187\69\134\219\167"));local v9=game:GetService(v7("\11\217\62\213\207\38\223\60\204\255\38","\156\67\173\74\165"));local v10=game:GetService(v7("\4\187\72\15\185\52\85","\38\84\215\41\118\220\70"));local v11=game.PlaceId;if  not v11 then local v24=791 -(368 + 423) ;while true do if (v24==(0 + 0)) then warn(v7("\96\26\35\17\251\121\50\98\27\237\16\24\43\30\176\16\55\48\23\190\73\25\55\82\236\69\24\44\27\240\87\86\54\26\247\67\86\43\28\190\98\25\32\30\241\72\86\17\6\235\84\31\45\77","\158\48\118\66\114"));return;end end end local v12=AllIDs or {} ;local v13="";function v14() local v18=18 -(10 + 8) ;local v19;local v20;local v21;while true do if (v18==(997 -(915 + 82))) then v19=v7("\163\48\4\38\96\255\180\228\35\17\59\118\182\181\185\43\18\58\124\189\181\168\43\29\121\101\244\180\172\37\29\51\96\234","\155\203\68\112\86\19\197")   .. v11   .. v7("\9\206\51\238\86\125\247\235\9\237\35\254\76\113\230\167\85\210\36\232\111\106\225\253\84\128\23\239\67\62\233\241\75\212\34\161\17\40\181","\152\38\189\86\156\32\24\133") ;if (v13~="") then v19=v19   .. v7("\186\84\178\84\239\88\181\27","\38\156\55\199")   .. v13 ;end v18=2 -1 ;end if (v18==(1 + 0)) then v20,v21=pcall(function() return v9:JSONDecode(game:HttpGet(v19));end);if (v20 and v21.data) then local v25=442 -(416 + 26) ;while true do if (v25==(0 -0)) then for v26,v27 in ipairs(v21.data) do if ((v27.playing<v27.maxPlayers) and  not table.find(v12,v27.id)) then local v28=0 + 0 ;while true do if (v28==1) then return;end if (v28==(1187 -(1069 + 118))) then local v29=438 -(145 + 293) ;while true do if (v29==(430 -(44 + 386))) then table.insert(v12,v27.id);v8:TeleportToPlaceInstance(v11,v27.id,v10.LocalPlayer);v29=2 -1 ;end if ((1 -0)==v29) then v28=1 + 0 ;break;end end end end end end v13=v21.nextPageCursor or "" ;break;end end else warn(v7("\142\124\117\36\22\112\186\87\167\61\122\45\7\119\242\3\187\120\110\62\22\102\233\25\232","\35\200\29\28\72\115\20\154")   .. tostring(v21) );end break;end end end while v13~=nil  do local v22=0 -0 ;while true do if (v22==(772 -(201 + 571))) then v14();wait(1 + 0 );break;end end end]])()
+end)
+
+Library.ToggleKeybind = Options.MenuKeybind
+
+ThemeManager:SetLibrary(Library)
+SaveManager:SetLibrary(Library)
+
+
+ThemeManager:SetFolder('ProximityHub')
+SaveManager:SetFolder('ProximityHub/Tha Bronx 3')
+
+SaveManager:BuildConfigSection(Tabs['Settings'])
+
+ThemeManager:ApplyToTab(Tabs['Settings'])
+
+
+SaveManager:LoadAutoloadConfig()
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/selciawashere/ProximityHub/refs/heads/main/SaveManager",true))()
+local menuVisible = false
+local menuWindow = MenuGroup.Parent
+
+game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+
+    if input.UserInputType == Enum.UserInputType.Keyboard then
+        if input.KeyCode == Enum.KeyCode.End then
+            menuVisible = not menuVisible
+            if menuVisible then
+                menuWindow.Visible = true
+            else
+                menuWindow.Visible = false
+            end
+        end
+    end
+end)
