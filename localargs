@@ -1,17 +1,17 @@
 --!native
--- https://github.com/78n/SimpleSpy 50/50 this breaks but it's a beta for a reason!
+--50/50 this breaks but it's a beta for a reason!
 
 if getgenv().SimpleSpyExecuted and type(getgenv().SimpleSpyShutdown) == "function" then
     getgenv().SimpleSpyShutdown()
 end
 
 local realconfigs = {
-    logcheckcaller = false,
+    logcheckcaller = true,
     autoblock = false,
     funcEnabled = true,
-    advancedinfo = false,
+    advancedinfo = true,
     --logreturnvalues = false,
-    supersecretdevtoggle = false
+    supersecretdevtoggle = true
 }
 
 local configs = newproxy(true)
@@ -220,8 +220,8 @@ function ErrorPrompt(Message,state)
     end
 end
 
-local Highlight = (isfile and loadfile and isfile("Highlight.lua") and loadfile("Highlight.lua")()) or loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/refs/heads/main/SimpleSpyV3/highlight.lua"))()
-local LazyFix = loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/refs/heads/main/SimpleSpyV3/DataToCode.lua"))() -- Very lazy fix as I'm legit just pasting it from the rewrite
+local Highlight = (isfile and loadfile and isfile("Highlight.lua") and loadfile("Highlight.lua")()) or loadstring(game:HttpGet("https://raw.githubusercontent.com/78n/SimpleSpy/main/Highlight.lua"))()
+local LazyFix = loadstring(game:HttpGet("https://raw.githubusercontent.com/78n/Roblox/refs/heads/main/Lua/Libraries/DataToCode/DataToCode.luau"))() -- Very lazy fix as I'm legit just pasting it from the rewrite
 
 local SimpleSpy3 = Create("ScreenGui",{ResetOnSpawn = false})
 local Storage = Create("Folder",{})
@@ -490,7 +490,7 @@ end
 --- Drags gui (so long as mouse is held down)
 --- @param input InputObject
 function onBarInput(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
         local lastPos = UserInputService:GetMouseLocation()
         local mainPos = Background.AbsolutePosition
         local offset = mainPos - lastPos
@@ -996,43 +996,31 @@ function newRemote(type, data)
         GenScript = "-- Generating, please wait...\n-- (If this message persists, the remote args are likely extremely long)"
     }
 
-    for k, v in pairs(log) do
-        print(k .. ":", v)
-    end
-
-    return log
-end
-
-
-
-logs[#logs + 1] = log
-printLog(log) -- Print the log after adding it to logs
-
-local connect = Button.MouseButton1Click:Connect(function()
-    logthread(running())
-    eventSelect(RemoteTemplate)
-    log.GenScript = genScript(log.Remote, log.args)
-    if blocked then
-        log.GenScript = "-- THIS REMOTE WAS PREVENTED FROM FIRING TO THE SERVER BY SIMPLESPY\n\n" .. log.GenScript
-    end
-    if selected == log and RemoteTemplate then
+    logs[#logs + 1] = log
+    local connect = Button.MouseButton1Click:Connect(function()
+        logthread(running())
         eventSelect(RemoteTemplate)
-    end
-end)
-layoutOrderNum -= 1
-table.insert(remoteLogs, 1, {connect, RemoteTemplate})
-clean()
-updateRemoteCanvas()
+        log.GenScript = genScript(log.Remote, log.args)
+        if blocked then
+            log.GenScript = "-- THIS REMOTE WAS PREVENTED FROM FIRING TO THE SERVER BY SIMPLESPY\n\n" .. log.GenScript
+        end
+        if selected == log and RemoteTemplate then
+            eventSelect(RemoteTemplate)
+        end
+    end)
+    layoutOrderNum -= 1
+    table.insert(remoteLogs, 1, {connect, RemoteTemplate})
+    clean()
+    updateRemoteCanvas()
 end
--- Function to generate script from remote and args, and print them
+
+--- Generates a script from the provided arguments (first has to be remote path)
 function genScript(remote, args)
-    print("Remote:", remote)
-    print("Args:", args)
     prevTables = {}
     local gen = ""
     if #args > 0 then
         xpcall(function()
-            gen = " = "..LazyFix.Convert(args, true) .. "\n"
+            gen = "local args = "..LazyFix.Convert(args, true) .. "\n"
         end,function(err)
             gen ..= "-- An error has occured:\n--"..err.."\n-- TableToString failure! Reverting to legacy functionality (results may vary)\nlocal args = {"
             xpcall(function()
@@ -1079,9 +1067,6 @@ function genScript(remote, args)
     prevTables = {}
     return gen
 end
-
-
-
 
 --- value-to-string: value, string (out), level (indentation), parent table, var name, is from tovar
 local CustomGeneration = {
@@ -1786,7 +1771,7 @@ local newnamecall = newcclosure(function(...)
                 if not configs.logcheckcaller and checkcaller() then return originalnamecall(...) end
                 local id = ThreadGetDebugId(remote)
                 local blockcheck = tablecheck(blocklist,remote,id)
-                 = {select(2,...)}
+                local args = {select(2,...)}
 
                 if not tablecheck(blacklist,remote,id) and not IsCyclicTable(args) then
                     local data = {
@@ -1939,7 +1924,7 @@ if not getgenv().SimpleSpyExecuted then
         end
         codebox = Highlight.new(CodeBox)
         logthread(spawn(function()
-            local suc,err = pcall(game.HttpGet,game,"https://raw.githubusercontent.com/infyiff/backup/refs/heads/main/SimpleSpyV3/update.txt")
+            local suc,err = pcall(game.HttpGet,game,"https://raw.githubusercontent.com/78n/SimpleSpy/main/UpdateLog.lua")
             codebox:setRaw((suc and err) or "")
         end))
         getgenv().SimpleSpy = SimpleSpy
@@ -2360,30 +2345,3 @@ if configs.supersecretdevtoggle then
         NotSound:Play()
     end)
 end
-
-if table.find({
-    Enum.Platform.IOS, Enum.Platform.Android
-}, UserInputService:GetPlatform()) then
-    Background.Draggable = true
-    local QuickCapture = Instance.new("TextButton")
-    local UICorner = Instance.new("UICorner")
-    QuickCapture.Parent = SimpleSpy3
-    QuickCapture.BackgroundColor3 = Color3.fromRGB(37, 36, 38)
-    QuickCapture.BackgroundTransparency = 0.14
-    QuickCapture.Position = UDim2.new(0.529, 0, 0, 0)
-    QuickCapture.Size = UDim2.new(0, 32, 0, 33)
-    QuickCapture.Font = Enum.Font.SourceSansBold
-    QuickCapture.Text = "Spy"
-    QuickCapture.TextColor3 = Background.Visible and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(252, 51, 51)
-    QuickCapture.TextSize = 16
-    QuickCapture.TextWrapped = true
-    QuickCapture.ZIndex = 10
-    QuickCapture.Draggable = true
-    UICorner.CornerRadius = UDim.new(0.5, 0)
-    UICorner.Parent = QuickCapture
-    QuickCapture.MouseButton1Click:Connect(function()
-        Background.Visible = not Background.Visible
-        QuickCapture.TextColor3 = Background.Visible and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(252, 51, 51)
-    end)
-end
-
