@@ -1013,6 +1013,12 @@ function newRemote(type, data)
     clean()
     updateRemoteCanvas()
 end
+-- Just print the remoteLogs table for debugging
+print("remoteLogs:", remoteLogs)
+
+
+
+
 
 --- Generates a script from the provided arguments (first has to be remote path)
 function genScript(remote, args)
