@@ -981,37 +981,48 @@ function newRemote(type, data)
     local Text = Create("TextLabel",{TextTruncate = Enum.TextTruncate.AtEnd,Name = "Text",Parent = RemoteTemplate,BackgroundColor3 = Color3.new(1, 1, 1),BackgroundTransparency = 1,Position = UDim2.new(0, 12, 0, 1),Size = UDim2.new(0, 105, 0, 18),ZIndex = 2,Font = Enum.Font.SourceSans,Text = remote.Name,TextColor3 = Color3.new(1, 1, 1),TextSize = 14,TextXAlignment = Enum.TextXAlignment.Left})
     local Button = Create("TextButton",{Name = "Button",Parent = RemoteTemplate,BackgroundColor3 = Color3.new(0, 0, 0),BackgroundTransparency = 0.75,BorderColor3 = Color3.new(1, 1, 1),Position = UDim2.new(0, 0, 0, 1),Size = UDim2.new(0, 117, 0, 18),AutoButtonColor = false,Font = Enum.Font.SourceSans,Text = "",TextColor3 = Color3.new(0, 0, 0),TextSize = 14})
 
-    local log = {
-        Name = remote.name,
-        Function = data.infofunc or "--Function Info is disabled",
-        Remote = remote,
-        DebugId = data.id,
-        metamethod = data.metamethod,
-        args = data.args,
-        Log = RemoteTemplate,
-        Button = Button,
-        Blocked = data.blocked,
-        Source = callingscript,
-        returnvalue = data.returnvalue,
-        GenScript = "-- Generating, please wait...\n-- (If this message persists, the remote args are likely extremely long)"
-    }
+local log = {
+    Name = remote.name,
+    Function = data.infofunc or "--Function Info is disabled",
+    Remote = remote,
+    DebugId = data.id,
+    metamethod = data.metamethod,
+    args = data.args,
+    Log = RemoteTemplate,
+    Button = Button,
+    Blocked = data.blocked,
+    Source = callingscript,
+    returnvalue = data.returnvalue,
+    GenScript = "-- Generating, please wait...\n-- (If this message persists, the remote args are likely extremely long)"
+}
 
-    logs[#logs + 1] = log
-    local connect = Button.MouseButton1Click:Connect(function()
-        logthread(running())
+-- Function to print the log table in a readable format
+local function printLog(log)
+    print("---- Log Entry ----")
+    for k, v in pairs(log) do
+        print(k .. ":", v)
+    end
+    print("------------------")
+end
+
+logs[#logs + 1] = log
+printLog(log) -- Print the log after adding it to logs
+
+local connect = Button.MouseButton1Click:Connect(function()
+    logthread(running())
+    eventSelect(RemoteTemplate)
+    log.GenScript = genScript(log.Remote, log.args)
+    if blocked then
+        log.GenScript = "-- THIS REMOTE WAS PREVENTED FROM FIRING TO THE SERVER BY SIMPLESPY\n\n" .. log.GenScript
+    end
+    if selected == log and RemoteTemplate then
         eventSelect(RemoteTemplate)
-        log.GenScript = genScript(log.Remote, log.args)
-        if blocked then
-            log.GenScript = "-- THIS REMOTE WAS PREVENTED FROM FIRING TO THE SERVER BY SIMPLESPY\n\n" .. log.GenScript
-        end
-        if selected == log and RemoteTemplate then
-            eventSelect(RemoteTemplate)
-        end
-    end)
-    layoutOrderNum -= 1
-    table.insert(remoteLogs, 1, {connect, RemoteTemplate})
-    clean()
-    updateRemoteCanvas()
+    end
+end)
+layoutOrderNum -= 1
+table.insert(remoteLogs, 1, {connect, RemoteTemplate})
+clean()
+updateRemoteCanvas()
 end
 
 -- Function to generate script from remote and args
@@ -1068,41 +1079,6 @@ function genScript(remote, args)
     return gen
 end
 
--- Print all logs and their generated scripts for debugging
-local function printAllLogsAndScripts()
-    print("==== LOGS DEBUG ====")
-    if #logs == 0 then
-        print("No logs have been hooked or logged yet.")
-    end
-    for i, log in ipairs(logs) do
-        print(string.format("Log #%d:", i))
-        print("  Name:", tostring(log.Name))
-        print("  Function:", tostring(log.Function))
-        print("  Remote:", tostring(log.Remote))
-        print("  DebugId:", tostring(log.DebugId))
-        print("  Metamethod:", tostring(log.metamethod))
-        print("  Args:", tostring(log.args))
-        print("  Blocked:", tostring(log.Blocked))
-        print("  Source:", tostring(log.Source))
-        print("  ReturnValue:", tostring(log.returnvalue))
-        local scriptStr = log.GenScript
-        if not scriptStr and log.Remote and log.args then
-            local success, result = pcall(function()
-                return genScript(log.Remote, log.args)
-            end)
-            if success then
-                scriptStr = result
-            else
-                scriptStr = "-- Failed to generate script: " .. tostring(result)
-            end
-        end
-        print("  Generated Script:\n" .. tostring(scriptStr))
-        print("--------------------------")
-    end
-    print("==== END LOGS ====")
-end
-
-printAllLogsAndScripts()
 
 
 --- value-to-string: value, string (out), level (indentation), parent table, var name, is from tovar
