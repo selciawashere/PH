@@ -981,7 +981,6 @@ function newRemote(type, data)
     local Text = Create("TextLabel",{TextTruncate = Enum.TextTruncate.AtEnd,Name = "Text",Parent = RemoteTemplate,BackgroundColor3 = Color3.new(1, 1, 1),BackgroundTransparency = 1,Position = UDim2.new(0, 12, 0, 1),Size = UDim2.new(0, 105, 0, 18),ZIndex = 2,Font = Enum.Font.SourceSans,Text = remote.Name,TextColor3 = Color3.new(1, 1, 1),TextSize = 14,TextXAlignment = Enum.TextXAlignment.Left})
     local Button = Create("TextButton",{Name = "Button",Parent = RemoteTemplate,BackgroundColor3 = Color3.new(0, 0, 0),BackgroundTransparency = 0.75,BorderColor3 = Color3.new(1, 1, 1),Position = UDim2.new(0, 0, 0, 1),Size = UDim2.new(0, 117, 0, 18),AutoButtonColor = false,Font = Enum.Font.SourceSans,Text = "",TextColor3 = Color3.new(0, 0, 0),TextSize = 14})
 
-local function createLog()
     local log = {
         Name = remote.name,
         Function = data.infofunc or "--Function Info is disabled",
@@ -1004,16 +1003,7 @@ local function createLog()
     return log
 end
 
-local log = createLog()
 
--- Function to print the log table in a readable format
-local function printLog(log)
-    print("---- Log Entry ----")
-    for k, v in pairs(log) do
-        print(k .. ":", v)
-    end
-    print("------------------")
-end
 
 logs[#logs + 1] = log
 printLog(log) -- Print the log after adding it to logs
