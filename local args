@@ -981,20 +981,30 @@ function newRemote(type, data)
     local Text = Create("TextLabel",{TextTruncate = Enum.TextTruncate.AtEnd,Name = "Text",Parent = RemoteTemplate,BackgroundColor3 = Color3.new(1, 1, 1),BackgroundTransparency = 1,Position = UDim2.new(0, 12, 0, 1),Size = UDim2.new(0, 105, 0, 18),ZIndex = 2,Font = Enum.Font.SourceSans,Text = remote.Name,TextColor3 = Color3.new(1, 1, 1),TextSize = 14,TextXAlignment = Enum.TextXAlignment.Left})
     local Button = Create("TextButton",{Name = "Button",Parent = RemoteTemplate,BackgroundColor3 = Color3.new(0, 0, 0),BackgroundTransparency = 0.75,BorderColor3 = Color3.new(1, 1, 1),Position = UDim2.new(0, 0, 0, 1),Size = UDim2.new(0, 117, 0, 18),AutoButtonColor = false,Font = Enum.Font.SourceSans,Text = "",TextColor3 = Color3.new(0, 0, 0),TextSize = 14})
 
-local log = {
-    Name = remote.name,
-    Function = data.infofunc or "--Function Info is disabled",
-    Remote = remote,
-    DebugId = data.id,
-    metamethod = data.metamethod,
-    args = data.args,
-    Log = RemoteTemplate,
-    Button = Button,
-    Blocked = data.blocked,
-    Source = callingscript,
-    returnvalue = data.returnvalue,
-    GenScript = "-- Generating, please wait...\n-- (If this message persists, the remote args are likely extremely long)"
-}
+local function createLog()
+    local log = {
+        Name = remote.name,
+        Function = data.infofunc or "--Function Info is disabled",
+        Remote = remote,
+        DebugId = data.id,
+        metamethod = data.metamethod,
+        args = data.args,
+        Log = RemoteTemplate,
+        Button = Button,
+        Blocked = data.blocked,
+        Source = callingscript,
+        returnvalue = data.returnvalue,
+        GenScript = "-- Generating, please wait...\n-- (If this message persists, the remote args are likely extremely long)"
+    }
+
+    for k, v in pairs(log) do
+        print(k .. ":", v)
+    end
+
+    return log
+end
+
+local log = createLog()
 
 -- Function to print the log table in a readable format
 local function printLog(log)
@@ -1032,7 +1042,7 @@ function genScript(remote, args)
     local gen = ""
     if #args > 0 then
         xpcall(function()
-            gen = "local args = "..LazyFix.Convert(args, true) .. "\n"
+            gen = " = "..LazyFix.Convert(args, true) .. "\n"
         end,function(err)
             gen ..= "-- An error has occured:\n--"..err.."\n-- TableToString failure! Reverting to legacy functionality (results may vary)\nlocal args = {"
             xpcall(function()
@@ -1786,7 +1796,7 @@ local newnamecall = newcclosure(function(...)
                 if not configs.logcheckcaller and checkcaller() then return originalnamecall(...) end
                 local id = ThreadGetDebugId(remote)
                 local blockcheck = tablecheck(blocklist,remote,id)
-                local args = {select(2,...)}
+                 = {select(2,...)}
 
                 if not tablecheck(blacklist,remote,id) and not IsCyclicTable(args) then
                     local data = {
