@@ -1024,9 +1024,10 @@ table.insert(remoteLogs, 1, {connect, RemoteTemplate})
 clean()
 updateRemoteCanvas()
 end
-
--- Function to generate script from remote and args
+-- Function to generate script from remote and args, and print them
 function genScript(remote, args)
+    print("Remote:", remote)
+    print("Args:", args)
     prevTables = {}
     local gen = ""
     if #args > 0 then
@@ -1078,6 +1079,7 @@ function genScript(remote, args)
     prevTables = {}
     return gen
 end
+
 
 
 
