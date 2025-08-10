@@ -40,9 +40,10 @@ local Window = Library:CreateWindow({
 
 local Tabs = {
     GunMods = Window:AddTab("GunMods"),
+    Features = Window:AddTab("Features"),
     Farms = Window:AddTab('Farm'),
+    Combats = Window:AddTab('Combats'),
     Visuals = Window:AddTab("Visuals"),
-
     
     
     
@@ -51,9 +52,21 @@ local Tabs = {
 }
 
 
+
 local Gun = Tabs.GunMods:AddLeftGroupbox("Gun Mods")
 local Playerr = Tabs.GunMods:AddRightGroupbox("Player")
+
+local Feature = Tabs.Features:AddLeftGroupbox("Features")
+
 local Farm = Tabs.Farms:AddLeftGroupbox("Farms")
+
+
+local Combat = Tabs.Combats:AddLeftGroupbox("Combat")
+
+
+
+
+
 
 local ESPSettings = Tabs.Visuals:AddLeftGroupbox("ESP Settings")
 local ESPBoxes = Tabs.Visuals:AddLeftGroupbox("ESP Boxes")
@@ -84,17 +97,26 @@ local RunService = game:GetService("RunService")
 
 
 
+local function btp(pos)
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local root = LocalPlayer.Character.HumanoidRootPart
+        local humanoid = LocalPlayer.Character:FindFirstChildWhichIsA("Humanoid")
+        local lookVector = Vector3.new(0, 0, 1)
+        local cframe = CFrame.new(pos, pos + lookVector)
+        root.CFrame = cframe
+        if humanoid then
+            humanoid.Sit = true
+            task.wait(0.4)
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+        task.wait(0.2)
+    end
+end
 
 
 
 
--- Decompiler will be improved VERY SOON!
--- Decompiled with Konstant V2.1, a fast Luau decompiler made in Luau by plusgiant5 (https://discord.gg/brNTY8nX8t)
--- Decompiled on 2025-08-04 12:32:48
--- Luau version 6, Types version 3
--- Time taken: 0.000743 seconds
 
--- Utility: Get all guns (Tools with a Settings ModuleScript) in Backpack and Character
 local function getAllGuns()
     local guns = {}
     local function scan(container)
@@ -111,14 +133,13 @@ local function getAllGuns()
     return guns
 end
 
--- Apply mods to a gun's settings table (generic, not Glock 26 specific)
 local function applyGunMods(gun, mods)
     local settings = gun:FindFirstChild("Settings")
     if not settings or not settings:IsA("ModuleScript") then return end
     local gunData = require(settings)
     if type(gunData) ~= "table" then return end
 
-    -- Only set fields that are present in the gunData or are important for the mod
+
     if mods.infDamage then
         if gunData.headDamage then gunData.headDamage = math.huge end
         if gunData.torsoDamage then gunData.torsoDamage = math.huge end
@@ -428,60 +449,119 @@ Playerr:AddToggle("NoclipToggle", {
 })
 
 
-
-local infJump
-local infJumpDebounce = false
-local noCooldownJump = false
-
-Playerr:AddToggle('InfiniteJumpToggle', {
+Feature:AddToggle('InfJumpToggle', {
     Text = 'Infinite Jump',
     Default = false,
+    Tooltip = 'Toggle Infinite Jump',
     Callback = function(Value)
-        getgenv().InfiniteJumpEnabled = Value
-        
         if infJump then
             infJump:Disconnect()
+            infJump = nil
         end
         infJumpDebounce = false
-
         if Value then
             infJump = UserInputService.JumpRequest:Connect(function()
-                if not getgenv().InfiniteJumpEnabled then return end
-                
-                local character = game.Players.LocalPlayer.Character
-                local humanoid = character and character:FindFirstChildWhichIsA("Humanoid")
-                
-                if not infJumpDebounce or noCooldownJump then
-                    if not noCooldownJump then
-                        infJumpDebounce = true
+                if not infJumpDebounce then
+                    infJumpDebounce = true
+                    local character = game.Players.LocalPlayer.Character
+                    if character then
+                        local humanoid = character:FindFirstChildWhichIsA("Humanoid")
+                        if humanoid then
+                            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                        end
                     end
-                    
-                    if humanoid then
-                        humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-                    end
-                    
-                    if not noCooldownJump then
-                        task.wait(0.1)
-                        infJumpDebounce = false
-                    end
-                end
-            end)
-
-            game.Players.LocalPlayer.CharacterAdded:Connect(function()
-                if getgenv().InfiniteJumpEnabled then
+                    wait()
                     infJumpDebounce = false
                 end
             end)
         end
     end
-}):AddKeyPicker('InfiniteJumpKey', {
-    Default = '',
-    SyncToggleState = true,
-    Mode = 'Toggle',
-    Text = 'Toggle Infinite Jump',
-    NoUI = false
 })
-Playerr:AddToggle('InstantInteraction', {
+local originalJumpPower = nil
+
+local player = game.Players.LocalPlayer
+local noJumpCooldownConn
+
+local running = false
+local loopThread = nil
+
+Feature:AddToggle('NoJumpCooldownToggle', {
+    Text = 'No Jump Cooldown',
+    Default = false,
+    Callback = function(Value)
+        getgenv().NoJumpCooldownEnabled = Value
+
+        if noJumpCooldownConn then
+            noJumpCooldownConn:Disconnect()
+            noJumpCooldownConn = nil
+        end
+
+        local function setJumpPowerAndBind(char)
+            local humanoid = char:FindFirstChildWhichIsA("Humanoid")
+            if humanoid then
+                if Value then
+                    if not originalJumpPower then
+                        originalJumpPower = humanoid.JumpPower
+                    end
+                    humanoid.JumpPower = 50
+
+                    noJumpCooldownConn = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+                        if not getgenv().NoJumpCooldownEnabled then return end
+                        if gameProcessed then return end
+                        if input.KeyCode == Enum.KeyCode.Space then
+                            if humanoid and humanoid:GetState() ~= Enum.HumanoidStateType.Jumping and humanoid:GetState() ~= Enum.HumanoidStateType.Freefall then
+                                humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                                humanoid.Jump = true
+                            end
+                        end
+                    end)
+                else
+                    if originalJumpPower then
+                        humanoid.JumpPower = originalJumpPower
+                        originalJumpPower = nil
+                    end
+                end
+            end
+        end
+
+        if player and player.Character then
+            setJumpPowerAndBind(player.Character)
+        end
+
+        if not _G.noJumpCooldownCharConn then
+            _G.noJumpCooldownCharConn = player.CharacterAdded:Connect(function(char)
+                if noJumpCooldownConn then
+                    noJumpCooldownConn:Disconnect()
+                    noJumpCooldownConn = nil
+                end
+                local hum = char:WaitForChild("Humanoid", 5)
+                if hum then
+                    setJumpPowerAndBind(char)
+                end
+            end)
+        end
+
+        running = Value
+        if loopThread then
+            loopThread = nil
+        end
+        if Value then
+            loopThread = task.spawn(function()
+                while running do
+                    local char = player and player.Character
+                    if char then
+                        local humanoid = char:FindFirstChildWhichIsA("Humanoid")
+                        if humanoid then
+                            humanoid.JumpPower = 50
+                        end
+                    end
+                    task.wait(0.1)
+                end
+            end)
+        end
+    end
+})
+Feature:AddToggle('InstantInteraction', {
     Text = 'Instant Interaction', 
     Default = false,
     Callback = function(Value)
@@ -508,7 +588,27 @@ Playerr:AddToggle('InstantInteraction', {
     end
 })
 
+local instantRespawnLoop
 
+Feature:AddToggle('InstantRespawn', {
+    Text = 'Instant Respawn',
+    Default = true,
+    Callback = function(Value)
+        local Players = game:GetService("Players")
+        if Value then
+            instantRespawnLoop = true
+            task.spawn(function()
+                while instantRespawnLoop do
+                    Players.RespawnTime = 1
+                    task.wait(0.2)
+                end
+            end)
+        else
+            instantRespawnLoop = false
+            Players.RespawnTime = 30
+        end
+    end
+})
 
 
 
@@ -635,7 +735,7 @@ end
 
 function mailboxAutofarm()
     local jobPos = Vector3.new(1801, 289, -2835)
-    tpToPosition(jobPos)
+    btp(jobPos)
     task.wait(0.3)    local prompt = nil
     for _,desc in ipairs(workspace:GetDescendants()) do
         if desc:IsA("ProximityPrompt") and desc.Parent and desc.Parent:IsA("BasePart") then
@@ -664,12 +764,12 @@ function mailboxAutofarm()
             if pos then
                 local mailboxPart = workspace:FindFirstChild("MailboxPart")
                 if mailboxPart and mailboxPart:IsA("BasePart") then
-                    tpToPosition(Vector3.new(1802, 289, -2835), mailboxPart.Position)
+                    btp(Vector3.new(1802, 289, -2835), mailboxPart.Position)
                 else
-                    tpToPosition(Vector3.new(1802, 289, -2835))
+                    btp(Vector3.new(1802, 289, -2835))
                 end
                 task.wait(1)
-                tpAndFacePosition(pos)
+                btp(pos)
                 task.wait(0.3)
                 setMailboxHoldDurationZero()
                 for i=1,20 do
@@ -691,6 +791,7 @@ Farm:AddToggle('MailboxAutofarm', {
         end
     end
 })
+
 
 
 local woodAutofarmEnabled = false
@@ -827,6 +928,7 @@ local function tpAndFaceFront(pos)
         local cframe = CFrame.new(pos, pos + lookVector)
         root.CFrame = cframe
         task.wait(0.2)
+        
     end
 end
 
@@ -853,7 +955,7 @@ local function woodAutofarm()
         end
 
         if not hasItemInInventory("Lumber Jack Axe") then
-            tpAndFaceFront(axePosition)
+            btp(axePosition)
             task.wait(0.5)
             pressE(0.6)
             task.wait(0.5)
@@ -863,7 +965,7 @@ local function woodAutofarm()
             equipItem("Full Log")
             local chopped = false
             for _, pos in ipairs(fullcutlogPositions) do
-                tpAndFaceFront(pos)
+                btp(pos)
                 task.wait(0.5)
                 pressE(0.6)
                 task.wait(0.5)
@@ -1085,7 +1187,7 @@ local function fastWoodAutofarm()
         end
 
         if not fastHasItemInInventory("Lumber Jack Axe") then
-            fastTpAndFaceFront(fastAxePosition)
+            btp(fastAxePosition)
             task.wait(0)
             fastPressE(0)
             task.wait(0)
@@ -1095,7 +1197,7 @@ local function fastWoodAutofarm()
             fastEquipItem("Full Log")
             local chopped = false
             for i, pos in ipairs(fastFullcutlogPositions) do
-                fastTpAndFaceFront(pos)
+                btp(pos)
                 task.wait(0.5)
                 fastPressE(0)
                 task.wait(0.5)
@@ -1168,6 +1270,229 @@ Farm:AddToggle('FastWoodAutofarm', {
 
 
 
+local teamCheck = false
+local highlightEnabled = false
+local checkIfAlive = true
+local fovRadius = 90
+local smoothing = 1.1
+local predictionFactor = 0.08
+local lockPart = "HumanoidRootPart"
+
+
+_G.AimbotPowerEnabled = false
+_G.AimbotKeyName = "E"
+_G.FOVCircleVisible = false
+_G.RainbowFOV = false
+
+
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local StarterGui = game:GetService("StarterGui")
+
+local FOVring = Drawing.new("Circle")
+FOVring.Thickness = 2
+FOVring.Radius = fovRadius
+FOVring.NumSides = 90
+FOVring.Filled = false
+FOVring.Transparency = 0.9
+FOVring.Color = Color3.fromRGB(255, 128, 128)
+FOVring.Visible = false
+
+local function hsvToRgb(h)
+    return Color3.fromHSV(h % 1, 1, 1)
+end
+
+local function highlightTarget(target)
+    if not highlightEnabled then return end
+    if target and target.Character then
+        local hl = target.Character:FindFirstChild("AimbotHighlight")
+        if not hl then
+            hl = Instance.new("Highlight", target.Character)
+            hl.Name = "AimbotHighlight"
+            hl.FillColor = Color3.fromRGB(255, 0, 0)
+            hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+            hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        end
+    end
+end
+
+local function clearHighlights()
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr.Character then
+            local hl = plr.Character:FindFirstChild("AimbotHighlight")
+            if hl then hl:Destroy() end
+        end
+    end
+end
+
+local function getClosest(mousePos)
+    local target, shortest = nil, math.huge
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= Players.LocalPlayer and player.Character and player.Character:FindFirstChild(lockPart) then
+            if (not teamCheck or player.Team ~= Players.LocalPlayer.Team) then
+                if (not checkIfAlive or (player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0)) then
+                    local screenPos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(player.Character[lockPart].Position)
+                    if onScreen then
+                        local distance = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
+                        if distance < shortest and distance <= fovRadius then
+                            shortest = distance
+                            target = player
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    return target
+end
+
+local function predictPosition(target)
+    if target and target.Character and target.Character:FindFirstChild(lockPart) then
+        local velocity = target.Character[lockPart].Velocity
+        local position = target.Character[lockPart].Position
+        return position + (velocity * predictionFactor)
+    end
+end
+
+local isAimbotKeyDown = false
+
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode.Name == _G.AimbotKeyName then
+        isAimbotKeyDown = true
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input, gpe)
+    if gpe then return end
+    if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode.Name == _G.AimbotKeyName then
+        isAimbotKeyDown = false
+    end
+end)
+
+
+local hue = 0
+RunService.RenderStepped:Connect(function()
+    local cam = workspace.CurrentCamera
+    local mousePos = UserInputService:GetMouseLocation()
+    FOVring.Position = Vector2.new(mousePos.X, mousePos.Y)
+    if _G.RainbowFOV then
+        hue = (hue + 0.01) % 1
+        FOVring.Color = hsvToRgb(hue)
+    end
+
+    if _G.AimbotPowerEnabled and isAimbotKeyDown then
+        local target = getClosest(Vector2.new(mousePos.X, mousePos.Y))
+        highlightTarget(target)
+
+        if target and target.Character and target.Character:FindFirstChild(lockPart) then
+            local predicted = predictPosition(target)
+            if predicted then
+                cam.CFrame = cam.CFrame:Lerp(CFrame.new(cam.CFrame.Position, predicted), smoothing)
+            end
+        end
+    else
+        clearHighlights()
+    end
+end)
+
+
+
+
+Combat:AddToggle('EnableAimbot', {
+    Text = 'Enable Aimbot',
+    Default = false,
+    Callback = function(val)
+        _G.AimbotPowerEnabled = val
+    end
+}):AddKeyPicker('Aimbot', {
+    Default = '',
+    SyncToggleState = true,
+    Mode = 'Toggle',
+    Text = 'Toggle Aimbot',
+    NoUI = false
+})
+
+Combat:AddInput('AimbotKeyInput', {
+    Default = _G.AimbotKeyName,
+    Text = 'Hold Key Activation (E/F)',
+    Placeholder = 'Enter key (case-sensitive)',
+    Callback = function(val)
+        _G.AimbotKeyName = val:upper()
+    end
+})
+
+Combat:AddToggle('TeamCheckToggle', {
+    Text = 'Team Check',
+    Default = false,
+    Callback = function(val)
+        teamCheck = val
+    end
+})
+
+Combat:AddToggle('HighlightTargetToggle', {
+    Text = 'Highlight Target',
+    Default = false,
+    Callback = function(val)
+        highlightEnabled = val
+        if not val then clearHighlights() end
+    end
+})
+
+Combat:AddToggle('AliveCheckToggle', {
+    Text = 'Check if Player is Alive',
+    Default = true,
+    Callback = function(val)
+        checkIfAlive = val
+    end
+})
+
+Combat:AddDivider()
+Combat:AddLabel("Fov Settings")
+Combat:AddSlider('FOVSlider', {
+    Text = 'FOV Radius',
+    Min = 10,
+    Max = 300,
+    Rounding = 1,
+    Default = fovRadius,
+    Callback = function(val)
+        fovRadius = val
+        FOVring.Radius = val
+    end
+})
+Combat:AddToggle('FOVVisible', {
+    Text = 'Show FOV Circle',
+    Default = false,
+    Callback = function(val)
+        _G.FOVCircleVisible = val
+        FOVring.Visible = val
+    end
+}):AddKeyPicker('CrawlKey', {
+    Default = '',
+    SyncToggleState = true,
+    Mode = 'Toggle',
+    Text = 'Toggle Crawl Animation',
+    NoUI = false
+})
+
+
+
+Combat:AddToggle('RainbowFOVToggle', {
+    Text = 'Rainbow FOV',
+    Default = false,
+    Callback = function(val)
+        _G.RainbowFOV = val
+    end
+})
+
+
+Combat:AddDivider()
+Combat:AddLabel("SIlent aim functions")
+Combat:AddLabel("is still in development")
 
 local lplr = game.Players.LocalPlayer
 local camera = workspace.CurrentCamera
