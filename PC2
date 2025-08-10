@@ -327,13 +327,14 @@ Playerr:AddToggle("FlyNewMethod", {
     Callback = function(state)
         FLYING = state
         local camera = workspace.CurrentCamera
+        local LocalPlayer = Players.LocalPlayer
         if state then
-            local LocalPlayer = Players.LocalPlayer
             local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
             if not character then return end
 
             local humanoid = character:FindFirstChild("Humanoid")
             if not humanoid then return end
+
 
             humanoid.PlatformStand = true
             local Head = character:WaitForChild("Head")
@@ -355,7 +356,6 @@ Playerr:AddToggle("FlyNewMethod", {
         else
             if CFloop then
                 CFloop:Disconnect()
-                local LocalPlayer = Players.LocalPlayer
                 local character = LocalPlayer.Character
                 local humanoid = character and character:FindFirstChildOfClass('Humanoid')
                 if humanoid then
@@ -365,7 +365,13 @@ Playerr:AddToggle("FlyNewMethod", {
                 if Head then
                     Head.Anchored = false
                 end
-
+                if humanoid then
+                    humanoid.Sit = true
+                end
+                task.wait(0.2)
+                if humanoid then
+                    humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                end
                 getgenv().SwimMethod = false
                 if humanoid then
                     humanoid:ChangeState(Enum.HumanoidStateType.Running)
