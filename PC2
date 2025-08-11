@@ -148,7 +148,7 @@ local function applyGunMods(gun, mods)
         if gunData.hatDamage then gunData.hatDamage = math.huge end
     end
     if mods.infAmmo then
-        if gunData.ammo then gunData.ammo = 999999 end
+        if gunData.ammo then gunData.ammo = 999 end
         if gunData.projectiles then gunData.projectiles = 99 end
     end
     if mods.fastReload then
@@ -204,11 +204,43 @@ Gun:AddButton("Infinite Damage", function()
     applyAllMods()
     Library:Notify("Infinite Damage applied to all guns!", 2)
 end)
+
+
 Gun:AddButton("Infinite Ammo", function()
     modState.infAmmo = true
+    local player = game:GetService("Players").LocalPlayer
+    local running = true
+
+    if _G.InfAmmoLoop then
+        _G.InfAmmoLoop = false
+        wait(0.1)
+    end
+
+    _G.InfAmmoLoop = true
+
+    spawn(function()
+        while _G.InfAmmoLoop and modState.infAmmo do
+            local function setAmmoTo500(container)
+                for _, item in ipairs(container:GetChildren()) do
+                    if item:FindFirstChild("Settings") and item.Settings:FindFirstChild("ammo") then
+                        item.Settings.ammo.Value = 500
+                    end
+                end
+            end
+            if player:FindFirstChild("Backpack") then
+                setAmmoTo500(player.Backpack)
+            end
+            if player.Character then
+                setAmmoTo500(player.Character)
+            end
+            wait(0.2)
+        end
+    end)
+
     applyAllMods()
-    Library:Notify("Infinite Ammo applied to all guns!", 2)
+    Library:Notify("Infinite Ammo (500) applied to all guns! (Looping)", 2)
 end)
+
 Gun:AddButton("Fast Reload", function()
     modState.fastReload = true
     applyAllMods()
@@ -609,6 +641,43 @@ Feature:AddToggle('InstantRespawn', {
         else
             instantRespawnLoop = false
             Players.RespawnTime = 30
+        end
+    end
+})
+
+local infiniteStaminaLoop
+
+Feature:AddToggle('InfiniteStamina', {
+    Text = 'Infinite Stamina',
+    Default = false,
+    Callback = function(Value)
+        if Value then
+            infiniteStaminaLoop = true
+            task.spawn(function()
+                while infiniteStaminaLoop do
+                    local args = { false }
+                    local plr = game:GetService("Players").LocalPlayer
+                    local events = plr:FindFirstChild("Events")
+                    if events then
+                        local energy = events:FindFirstChild("Energy")
+                        if energy then
+                            energy:FireServer(unpack(args))
+                        end
+                    end
+                    task.wait(0.2)
+                end
+            end)
+        else
+            infiniteStaminaLoop = false
+            local args = { false }
+            local plr = game:GetService("Players").LocalPlayer
+            local events = plr:FindFirstChild("Events")
+            if events then
+                local energy = events:FindFirstChild("Energy")
+                if energy then
+                    energy:FireServer(unpack(args))
+                end
+            end
         end
     end
 })
@@ -1150,12 +1219,36 @@ local function fastPressE(duration)
     VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
 end
 
+
 local function fastClickMouse1(duration)
     local VirtualInputManager = game:GetService("VirtualInputManager")
-    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
-    task.wait(duration)
-    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+    local startTime = tick()
+    while tick() - startTime < (duration or 0.1) do
+        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+        task.wait(0.05)
+        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+        task.wait(0.05)
+    end
 end
+    local axe = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Lumber Jack Axe")
+    if axe and axe:FindFirstChild("Event") then
+        local argsTrue = {
+            "Chopping",
+            true
+        }
+        local argsFalse = {
+            "Chopping",
+            false
+        }
+        local startTime = tick()
+        while tick() - startTime < (duration or 0.1) do
+            axe.Event:FireServer(unpack(argsTrue))
+            task.wait(0.05)
+            axe.Event:FireServer(unpack(argsFalse))
+            task.wait(0.05)
+        end
+    end
+
 
 local function fastTpAndFaceFront(pos)
     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
@@ -1264,7 +1357,107 @@ Farm:AddToggle('FastWoodAutofarm', {
         end
     end
 })
+Farm:AddDivider()
+local garbageAutofarmEnabled = false
+local garbageAutofarmThread
 
+local function tp(pos)
+    local plr = game.Players.LocalPlayer
+    local chr = plr.Character or plr.CharacterAdded:Wait()
+    local hrp = chr:FindFirstChild("HumanoidRootPart")
+    if hrp then
+        local humanoid = chr:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid.Sit = true
+        end
+        hrp.CFrame = CFrame.new(pos)
+    end
+end
+
+local function pressE()
+    local VirtualInputManager = game:GetService("VirtualInputManager")
+    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+    task.wait(0.05)
+    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+end
+
+local function equipTrashBag()
+    local plr = game.Players.LocalPlayer
+    local chr = plr.Character or plr.CharacterAdded:Wait()
+    local backpack = plr:FindFirstChild("Backpack")
+    if backpack then
+        local trashBag = backpack:FindFirstChild("Trash Bag")
+        if trashBag and trashBag:IsA("Tool") and chr then
+            trashBag.Parent = chr
+            return true
+        end
+    end
+    return false
+end
+
+local function hasTrashBagEquipped()
+    local plr = game.Players.LocalPlayer
+    local chr = plr.Character or plr.CharacterAdded:Wait()
+    return chr:FindFirstChild("Trash Bag") ~= nil
+end
+
+local function garbageAutofarm()
+    local plr = game.Players.LocalPlayer
+    local pickupPos = Vector3.new(284, 317, 794)
+    local sellPos = Vector3.new(294, 317, 660)
+
+    while garbageAutofarmEnabled do
+        tp(pickupPos)
+        task.wait(0.05)
+        pressE() 
+        task.wait(0.05)
+
+        for i = 1, 10 do 
+            if equipTrashBag() then
+                break
+            end
+            task.wait(0.02)
+        end
+
+        for i = 1, 5 do
+            if hasTrashBagEquipped() then break end
+            equipTrashBag()
+            task.wait(0.01)
+        end
+
+        task.wait(0.05)
+
+        tp(sellPos)
+        task.wait(0.08)
+        pressE() 
+        task.wait(0.05)
+    end
+end
+
+Farm:AddToggle('GarbageAutofarm', {
+    Text = 'Garbage Autofarm',
+    Default = false,
+    Callback = function(state)
+        garbageAutofarmEnabled = state
+        local plr = game.Players.LocalPlayer
+        local function jump()
+            local chr = plr.Character or plr.CharacterAdded:Wait()
+            local humanoid = chr:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid.Jump = true
+            end
+        end
+        if garbageAutofarmEnabled then
+            if garbageAutofarmThread and coroutine.status(garbageAutofarmThread) ~= "dead" then
+                return
+            end
+            garbageAutofarmThread = coroutine.create(garbageAutofarm)
+            coroutine.resume(garbageAutofarmThread)
+        else
+            jump()
+        end
+    end
+})
 
 
 
