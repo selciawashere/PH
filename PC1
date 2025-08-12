@@ -19,6 +19,7 @@
     Features:
     - Mailbox Farm
     - LumberJack Farm
+    - Garbage Farm
 ]]
 local repo = game:GetService("UserInputService").TouchEnabled or game:GetService("UserInputService").GamepadEnabled 
     and 'https://raw.githubusercontent.com/selciawashere/ProximityHub/refs/heads/main/UILIB'
@@ -54,8 +55,10 @@ local Tabs = {
 
 
 local Gun = Tabs.GunMods:AddLeftGroupbox("Gun Mods")
-local Playerr = Tabs.GunMods:AddRightGroupbox("Player")
+local Teleports = Tabs.GunMods:AddRightGroupbox("Teleports")
 
+
+local Playerr = Tabs.Features:AddRightGroupbox("Player")
 local Feature = Tabs.Features:AddLeftGroupbox("Features")
 
 local Farm = Tabs.Farms:AddLeftGroupbox("Farms")
@@ -287,6 +290,62 @@ end)
 
 
 
+local teleportLocations = {
+    ["Mail Job"] = Vector3.new(-35, 317, -384),
+    ["Clinic"] = Vector3.new(-479, 317, -408),
+    ["Studio Outside"] = Vector3.new(-1091, 317, -502),
+    ["Studio Inside"] = Vector3.new(2703, 288, 837),
+    ["Ice Blox"] = Vector3.new(-1281, 317, 519),
+    ["Chop Shop (Car)"] = Vector3.new(-908, 317, 517),
+    ["Barber Shop Outside 1"] = Vector3.new(-157, 321, 749),
+    ["Barber Shop Outside 2"] = Vector3.new(2459, 285, 223),
+    ["Gun Shop (FREEDOM TACTICAL)"] = Vector3.new(195, 318, 945),
+    ["Lavanderia Laundromat (Outside)"] = Vector3.new(-1, 317, 934),
+    ["Lavanderia Laundromat (Inside)"] = Vector3.new(2450, 286, -1332),
+    ["Sell Stolen Loot Location"] = Vector3.new(48, 317, 791),
+    ["Black Market 1"] = Vector3.new(316, 317, 1093),
+    ["Black Market 2"] = Vector3.new(850, 320, -491),
+    ["Guapo"] = Vector3.new(171, 317, -164),
+    ["Gas Station"] = Vector3.new(288, 317, 299),
+    ["Car Dealership"] = Vector3.new(646, 317, 347),
+    ["Shirts/Shoes"] = Vector3.new(887, 318, -311),
+    ["Sell Repz"] = Vector3.new(2486, 284, -369),
+    ["Laptops/Phones"] = Vector3.new(693, 317, -76),
+    ["Biteway Inside"] = Vector3.new(2510, 275, -1162),
+    ["Biteway Outside"] = Vector3.new(714, 317, -133),
+    ["Autoshop"] = Vector3.new(1035, 317, 819),
+    ["Beauty Studio"] = Vector3.new(802, 317, 958),
+    ["Garbage Job"] = Vector3.new(288, 317, 797),
+    ["Lumber Jack Job"] = Vector3.new(742, 317, 847),
+    ["Reps Machine"] = Vector3.new(-135, 317, 162),
+}
+
+local teleportNames = {}
+for name, _ in pairs(teleportLocations) do
+    table.insert(teleportNames, name)
+end
+table.sort(teleportNames)
+
+local selectedTeleport = teleportNames[1]
+
+Teleports:AddDropdown("TeleportDropdown", {
+    Text = "Teleport Locations",
+    Values = teleportNames,
+    Default = selectedTeleport,
+    Callback = function(value)
+        selectedTeleport = value
+    end
+})
+
+Teleports:AddButton("Teleport", function()
+    local pos = teleportLocations[selectedTeleport]
+    if pos then
+        btp(pos)
+        Library:Notify("Teleported to " .. selectedTeleport, 2)
+    else
+        Library:Notify("Invalid teleport location!", 2)
+    end
+end)
 
 
 
