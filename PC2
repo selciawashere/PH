@@ -21,15 +21,9 @@
     - LumberJack Farm
     - Garbage Farm
 ]]
-local repo = game:GetService("UserInputService").TouchEnabled or game:GetService("UserInputService").GamepadEnabled 
-    and 'https://raw.githubusercontent.com/selciawashere/ProximityHub/refs/heads/main/UILIB'
-    or 'https://raw.githubusercontent.com/mstudio45/LinoriaLib/main/'
-
-print(repo:match("Mobile") and "Mobile Loaded" or "PC Loaded")
-
-local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
-local ThemeManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/ThemeManager'))()
-local SaveManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/SaveManager'))()
+local Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/UILIBMobile'))()
+local ThemeManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/ThemeManagerMobile'))()
+local SaveManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/SaveManagerMobile'))()
 local Window = Library:CreateWindow({
     Title = 'Proximity Hub [V.1.0.1] | Philly Streets 2 | ' .. (identifyexecutor and identifyexecutor() or "Unknown"),
     Center = true,
