@@ -1619,6 +1619,13 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
         return
     end
 
+    for _, v in pairs(game.Workspace:GetDescendants()) do
+        if v:IsA("ProximityPrompt") then
+            v.HoldDuration = 0
+            v.RequiresLineOfSight = false
+        end
+    end
+
     local notifFrame = plr:FindFirstChild("PlayerGui")
         and plr.PlayerGui:FindFirstChild("ScreenGui")
         and plr.PlayerGui.ScreenGui:FindFirstChild("NotificationFrame")
@@ -1749,6 +1756,12 @@ Farm:AddButton('Infinite Money (Low Dirty Money)', function()
         end
         return
     end
+        for _, v in pairs(game.Workspace:GetDescendants()) do
+            if v:IsA("ProximityPrompt") then
+                v.HoldDuration = 0
+                v.RequiresLineOfSight = false
+            end
+        end
 
     local notifFrame = plr:FindFirstChild("PlayerGui")
         and plr.PlayerGui:FindFirstChild("ScreenGui")
@@ -1838,8 +1851,6 @@ Farm:AddButton('Infinite Money (Low Dirty Money)', function()
     blackscreen:Destroy()
 end)
 Farm:AddLabel("Need Dirty Money To Work")
-
-
 
 
 
