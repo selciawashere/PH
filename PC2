@@ -1598,32 +1598,7 @@ do
         end
     })
 end
--- Mobile support: Use TouchTap for fireproximityprompt if on mobile, and avoid camera manipulation
 
-local function isMobile()
-    -- Roblox's UserInputService.TouchEnabled is true on mobile devices
-    local UIS = game:GetService("UserInputService")
-    return UIS.TouchEnabled and not UIS.KeyboardEnabled
-end
-
-local function safeFireProximityPrompt(prompt, times)
-    -- On mobile, simulate touch tap; on PC, use fireproximityprompt
-    times = times or 1
-    for i = 1, times do
-        if isMobile() then
-            -- Use TouchTap if available (Roblox API)
-            if typeof(prompt) == "Instance" and prompt:IsA("ProximityPrompt") then
-                pcall(function()
-                    prompt:InputHoldBegin()
-                    task.wait(0.05)
-                    prompt:InputHoldEnd()
-                end)
-            end
-        else
-            fireproximityprompt(prompt, 1, true)
-        end
-    end
-end
 
 Farm:AddButton('Infinite Money (High Dirty Money)', function()
     local plr = game:GetService("Players").LocalPlayer
@@ -1716,42 +1691,12 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
         return
     end
 
-    -- Camera manipulation is not supported on mobile, so skip it if on mobile
-    local camera = workspace.CurrentCamera
-    local originalCameraType, originalCameraSubject, originalCFrame
-    if not isMobile() then
-        originalCameraType = camera.CameraType
-        originalCameraSubject = camera.CameraSubject
-        originalCFrame = camera.CFrame
-
-        local camTarget = washingMachine:FindFirstChild("Interaction") or washingMachine
-        if camTarget and camTarget:IsA("BasePart") then
-            camera.CameraType = Enum.CameraType.Scriptable
-            camera.CFrame = camTarget.CFrame * CFrame.new(0, 2, 5) * CFrame.Angles(0, math.pi, 0)
-        elseif washingMachine:IsA("BasePart") then
-            camera.CameraType = Enum.CameraType.Scriptable
-            camera.CFrame = washingMachine.CFrame * CFrame.new(0, 2, 5) * CFrame.Angles(0, math.pi, 0)
+    for i = 1, 5000 do
+        for j = 1, 50 do
+            fireproximityprompt(prompt, 1, true)
+            fireproximityprompt(prompt, 1, true)
         end
-    end
-
-    local total = 5000
-    local startTime = tick()
-    for i = 1, total do
-        if prompt.Parent and prompt.Parent:IsA("BasePart") then
-            local lookPos = prompt.Parent.Position
-            root.CFrame = CFrame.new(root.Position, lookPos)
-        end
-        safeFireProximityPrompt(prompt, 1)
-    end
-    local elapsed = tick() - startTime
-    if elapsed < 1 then
-        task.wait(1 - elapsed)
-    end
-
-    if not isMobile() then
-        camera.CameraType = originalCameraType
-        camera.CameraSubject = originalCameraSubject
-        camera.CFrame = originalCFrame
+        task.wait(0.01)
     end
 
     if btp then
@@ -1857,18 +1802,12 @@ Farm:AddButton('Infinite Money (Low Dirty Money)', function()
         return
     end
 
-    local total = 20000
-    local startTime = tick()
-    for i = 1, total do
-        if prompt.Parent and prompt.Parent:IsA("BasePart") then
-            local lookPos = prompt.Parent.Position
-            root.CFrame = CFrame.new(root.Position, lookPos)
+    for i = 1, 20000 do
+        for j = 1, 50 do
+            fireproximityprompt(prompt, 1, true)
+            fireproximityprompt(prompt, 1, true)
         end
-        safeFireProximityPrompt(prompt, 1)
-    end
-    local elapsed = tick() - startTime
-    if elapsed < 1 then
-        task.wait(1 - elapsed)
+        task.wait(0.01)
     end
 
     if btp then
