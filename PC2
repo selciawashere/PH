@@ -1845,6 +1845,8 @@ Farm:AddLabel("Need Dirty Money To Work")
 
 
 
+
+
 local teamCheck = false
 local highlightEnabled = false
 local checkIfAlive = true
