@@ -1609,11 +1609,11 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
         dirtyMoney = settings.Currency:GetAttribute("Dirty")
     end
 
-    if not dirtyMoney or dirtyMoney == 0 then
+    if not dirtyMoney or dirtyMoney < 1500 then
         if Library and Library.Notify then
-            Library:Notify("You can't use Infinite Money! You need Dirty Money.", 3)
+            Library:Notify("You need at least $1,500 Dirty Money to use Infinite Money!", 3)
         else
-            warn("You can't use Infinite Money! You need Dirty Money.")
+            warn("You need at least $1,500 Dirty Money to use Infinite Money!")
         end
         return
     end
@@ -1637,7 +1637,6 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
         mainGui.notificationFrame:Destroy()
     end
 
-    -- Create blackscreen with label
     local blackscreen = Instance.new("ScreenGui")
     blackscreen.Name = "blackscreen"
     blackscreen.IgnoreGuiInset = true
@@ -1652,7 +1651,6 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
     frame.Position = UDim2.new(0,0,0,0)
     frame.Parent = blackscreen
 
-    -- Proximity Hub Inf Money Loading Label
     local label = Instance.new("TextLabel")
     label.Name = "ProximityHubInfMoneyLoading"
     label.Text = "Proximity Hub\nInf Money Loading...\n(Estimated time: 20-30 seconds for High Dirty Money)"
@@ -1708,7 +1706,7 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
         return
     end
 
-    for i = 1, 5000 do
+    for i = 1, 1000 do
         fireproximityprompt(prompt, 1, true)
     end
     if btp then
@@ -1722,123 +1720,7 @@ end)
 
 Farm:AddLabel("DM Means Dirty Money")
 Farm:AddLabel("HDM Meaning High DirtyMoney")
-Farm:AddLabel("LDM Meaning Low DirtyMoney")
 Farm:AddLabel("HDM IF YOUR DM IS 1000$+")
-Farm:AddLabel("LDM IF YOUR DM IS BELOW 1000$")
-
-Farm:AddButton('Infinite Money (Low Dirty Money)', function()
-    local plr = game:GetService("Players").LocalPlayer
-
-    local dirtyMoney = 0
-    local settings = plr:FindFirstChild("Settings")
-    if settings and settings:FindFirstChild("Currency") and settings.Currency:GetAttribute("Dirty") then
-        dirtyMoney = settings.Currency:GetAttribute("Dirty")
-    end
-
-    if not dirtyMoney or dirtyMoney == 0 then
-        if Library and Library.Notify then
-            Library:Notify("You can't use Infinite Money! You need Dirty Money.", 3)
-        else
-            warn("You can't use Infinite Money! You need Dirty Money.")
-        end
-        return
-    end
-    for _, v in pairs(game.Workspace:GetDescendants()) do
-        if v:IsA("ProximityPrompt") then
-            v.HoldDuration = 0
-            v.RequiresLineOfSight = false
-        end
-    end
-
-    local notifFrame = plr:FindFirstChild("PlayerGui")
-        and plr.PlayerGui:FindFirstChild("ScreenGui")
-        and plr.PlayerGui.ScreenGui:FindFirstChild("NotificationFrame")
-    if notifFrame then
-        notifFrame:Destroy()
-    end
-
-    local mainGui = plr:FindFirstChild("PlayerGui") and plr.PlayerGui:FindFirstChild("MainGUI")
-    if mainGui and mainGui:FindFirstChild("notificationFrame") then
-        mainGui.notificationFrame:Destroy()
-    end
-
-    local blackscreen = Instance.new("ScreenGui")
-    blackscreen.Name = "Blackscreen"
-    blackscreen.IgnoreGuiInset = true
-    blackscreen.ResetOnSpawn = false
-    blackscreen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    blackscreen.Parent = plr:FindFirstChild("PlayerGui") or game:GetService("Players").LocalPlayer.PlayerGui
-
-    local frame = Instance.new("Frame")
-    frame.BackgroundColor3 = Color3.new(0,0,0)
-    frame.BorderSizePixel = 0
-    frame.Size = UDim2.new(1,0,1,0)
-    frame.Position = UDim2.new(0,0,0,0)
-    frame.BackgroundTransparency = 0
-    frame.Parent = blackscreen
-
-    local label = Instance.new("TextLabel")
-    label.Text = "Infinite Money Running..."
-    label.TextColor3 = Color3.new(1,1,1)
-    label.BackgroundTransparency = 1
-    label.Font = Enum.Font.SourceSansBold
-    label.TextScaled = true
-    label.Size = UDim2.new(1,0,0.1,0)
-    label.Position = UDim2.new(0,0,0.45,0)
-    label.Parent = frame
-
-    local char = plr.Character or plr.CharacterAdded:Wait()
-    local root = char:FindFirstChild("HumanoidRootPart")
-    if not root then
-        blackscreen:Destroy()
-        return
-    end
-
-    local prevPos = root.CFrame
-
-    local herePos = Vector3.new(2465, 286, -1325)
-    if btp then
-        btp(herePos)
-    else
-        root.CFrame = CFrame.new(herePos)
-    end
-    task.wait(0.2)
-
-    local prompt
-    for _, obj in ipairs(workspace:GetChildren()) do
-        if obj.Name == "WashingMachine" then
-            local interaction = obj:FindFirstChild("Interaction")
-            if interaction and interaction:FindFirstChild("Prompt") then
-                prompt = interaction.Prompt
-                break
-            end
-        end
-    end
-
-    if not prompt then
-        if btp then
-            btp(prevPos.Position)
-        else
-            root.CFrame = prevPos
-        end
-        blackscreen:Destroy()
-        return
-    end
-
-    for i = 1, 20000 do
-        fireproximityprompt(prompt, 1, true)
-    end
-
-    if btp then
-        btp(prevPos.Position)
-    else
-        root.CFrame = prevPos
-    end
-
-    blackscreen:Destroy()
-end)
-Farm:AddLabel("Need Dirty Money To Work")
-
 
 
 
