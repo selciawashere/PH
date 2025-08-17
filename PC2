@@ -1637,6 +1637,7 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
         mainGui.notificationFrame:Destroy()
     end
 
+    -- Create blackscreen with label
     local blackscreen = Instance.new("ScreenGui")
     blackscreen.Name = "blackscreen"
     blackscreen.IgnoreGuiInset = true
@@ -1650,6 +1651,22 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
     frame.Size = UDim2.new(1,0,1,0)
     frame.Position = UDim2.new(0,0,0,0)
     frame.Parent = blackscreen
+
+    -- Proximity Hub Inf Money Loading Label
+    local label = Instance.new("TextLabel")
+    label.Name = "ProximityHubInfMoneyLoading"
+    label.Text = "Proximity Hub\nInf Money Loading...\n(Estimated time: 20-30 seconds for High Dirty Money)"
+    label.TextColor3 = Color3.new(1,1,1)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.SourceSansBold
+    label.TextSize = 32
+    label.TextStrokeTransparency = 0.5
+    label.TextStrokeColor3 = Color3.new(0,0,0)
+    label.Size = UDim2.new(1,0,0,0)
+    label.Position = UDim2.new(0,0,0.45,0)
+    label.TextYAlignment = Enum.TextYAlignment.Center
+    label.TextXAlignment = Enum.TextXAlignment.Center
+    label.Parent = frame
 
     local char = plr.Character or plr.CharacterAdded:Wait()
     local root = char:FindFirstChild("HumanoidRootPart")
@@ -1692,13 +1709,8 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
     end
 
     for i = 1, 5000 do
-        for j = 1, 50 do
-            fireproximityprompt(prompt, 1, true)
-            fireproximityprompt(prompt, 1, true)
-        end
-        task.wait(0.01)
+        fireproximityprompt(prompt, 1, true)
     end
-
     if btp then
         btp(prevPos.Position)
     else
@@ -1707,12 +1719,12 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
 
     blackscreen:Destroy()
 end)
+
 Farm:AddLabel("DM Means Dirty Money")
 Farm:AddLabel("HDM Meaning High DirtyMoney")
 Farm:AddLabel("LDM Meaning Low DirtyMoney")
 Farm:AddLabel("HDM IF YOUR DM IS 1000$+")
 Farm:AddLabel("LDM IF YOUR DM IS BELOW 1000$")
-
 
 Farm:AddButton('Infinite Money (Low Dirty Money)', function()
     local plr = game:GetService("Players").LocalPlayer
@@ -1751,18 +1763,29 @@ Farm:AddButton('Infinite Money (Low Dirty Money)', function()
     end
 
     local blackscreen = Instance.new("ScreenGui")
-    blackscreen.Name = "blackscreen"
+    blackscreen.Name = "Blackscreen"
     blackscreen.IgnoreGuiInset = true
     blackscreen.ResetOnSpawn = false
-    blackscreen.ZIndexBehavior = Enum.ZIndexBehavior.Global
-    blackscreen.Parent = game:GetService("CoreGui")
+    blackscreen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    blackscreen.Parent = plr:FindFirstChild("PlayerGui") or game:GetService("Players").LocalPlayer.PlayerGui
 
     local frame = Instance.new("Frame")
     frame.BackgroundColor3 = Color3.new(0,0,0)
     frame.BorderSizePixel = 0
     frame.Size = UDim2.new(1,0,1,0)
     frame.Position = UDim2.new(0,0,0,0)
+    frame.BackgroundTransparency = 0
     frame.Parent = blackscreen
+
+    local label = Instance.new("TextLabel")
+    label.Text = "Infinite Money Running..."
+    label.TextColor3 = Color3.new(1,1,1)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.SourceSansBold
+    label.TextScaled = true
+    label.Size = UDim2.new(1,0,0.1,0)
+    label.Position = UDim2.new(0,0,0.45,0)
+    label.Parent = frame
 
     local char = plr.Character or plr.CharacterAdded:Wait()
     local root = char:FindFirstChild("HumanoidRootPart")
@@ -1803,11 +1826,7 @@ Farm:AddButton('Infinite Money (Low Dirty Money)', function()
     end
 
     for i = 1, 20000 do
-        for j = 1, 50 do
-            fireproximityprompt(prompt, 1, true)
-            fireproximityprompt(prompt, 1, true)
-        end
-        task.wait(0.01)
+        fireproximityprompt(prompt, 1, true)
     end
 
     if btp then
