@@ -21,6 +21,9 @@
     - LumberJack Farm
     - Garbage Farm
 ]]
+print("Mobile UI Loaded")
+
+
 local Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/UILIBMobile'))()
 local ThemeManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/ThemeManagerMobile'))()
 local SaveManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/SaveManagerMobile'))()
