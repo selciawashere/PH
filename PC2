@@ -1699,15 +1699,23 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
 
     local prompt
     local washingMachine
-    for _, obj in ipairs(workspace:GetChildren()) do
+
+    for _, obj in ipairs(workspace:GetDescendants()) do
         if obj.Name == "WashingMachine" then
             washingMachine = obj
             local interaction = obj:FindFirstChild("Interaction")
-            if interaction and interaction:FindFirstChild("Prompt") then
-                prompt = interaction.Prompt
-                break
+            if interaction then
+                prompt = interaction:FindFirstChildWhichIsA("ProximityPrompt") or interaction:FindFirstChild("Prompt")
+                if prompt then
+                    washingMachine.Prompt = prompt
+                    break
+                end
             end
         end
+    end
+
+    if washingMachine and washingMachine.Prompt then
+        prompt = washingMachine.Prompt
     end
 
     if not prompt or not washingMachine then
