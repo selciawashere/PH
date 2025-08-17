@@ -1601,7 +1601,6 @@ do
     })
 end
 
-
 Farm:AddButton('Infinite Money (High Dirty Money)', function()
     local plr = game:GetService("Players").LocalPlayer
 
@@ -1703,6 +1702,10 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
     local total = 500
     local startTime = tick()
     for i = 1, total do
+        if prompt.Parent and prompt.Parent:IsA("BasePart") then
+            local lookPos = prompt.Parent.Position
+            root.CFrame = CFrame.new(root.Position, lookPos)
+        end
         fireproximityprompt(prompt, 1, true)
     end
     local elapsed = tick() - startTime
@@ -1815,6 +1818,10 @@ Farm:AddButton('Infinite Money (Low Dirty Money)', function()
     local total = 3000
     local startTime = tick()
     for i = 1, total do
+        if prompt.Parent and prompt.Parent:IsA("BasePart") then
+            local lookPos = prompt.Parent.Position
+            root.CFrame = CFrame.new(root.Position, lookPos)
+        end
         fireproximityprompt(prompt, 1, true)
     end
     local elapsed = tick() - startTime
