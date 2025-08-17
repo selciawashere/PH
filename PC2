@@ -1706,7 +1706,7 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
         camera.CFrame = washingMachine.CFrame * CFrame.new(0, 2, 5) * CFrame.Angles(0, math.pi, 0)
     end
 
-    local total = 1000
+    local total = 5000
     local startTime = tick()
     for i = 1, total do
         if prompt.Parent and prompt.Parent:IsA("BasePart") then
@@ -1828,7 +1828,7 @@ Farm:AddButton('Infinite Money (Low Dirty Money)', function()
         return
     end
 
-    local total = 3000
+    local total = 20000
     local startTime = tick()
     for i = 1, total do
         if prompt.Parent and prompt.Parent:IsA("BasePart") then
