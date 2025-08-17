@@ -40,6 +40,7 @@ local Window = Library:CreateWindow({
 })
 
 local Tabs = {
+    ShopS = Window:AddTab("Shops"),
     GunMods = Window:AddTab("GunMods"),
     Features = Window:AddTab("Features"),
     Farms = Window:AddTab('Farm'),
@@ -53,6 +54,7 @@ local Tabs = {
 }
 
 
+local Shopping = Tabs.ShopS:AddLeftGroupbox("Quick Shops")
 
 local Gun = Tabs.GunMods:AddLeftGroupbox("Gun Mods")
 local Teleports = Tabs.GunMods:AddRightGroupbox("Teleports")
@@ -68,9 +70,6 @@ local Combat = Tabs.Combats:AddLeftGroupbox("Combat")
 
 
 
-
-
-
 local ESPSettings = Tabs.Visuals:AddLeftGroupbox("ESP Settings")
 local ESPBoxes = Tabs.Visuals:AddLeftGroupbox("ESP Boxes")
 local ESPTracers = Tabs.Visuals:AddRightGroupbox("ESP Tracers")
@@ -83,12 +82,29 @@ local VisualsTab = Tabs.Visuals:AddRightGroupbox("Ambient Surroundings")
 local MenuGroupRight = Tabs['Settings']:AddRightGroupbox('Server')
 local MenuGroup = Tabs['Settings']:AddRightGroupbox('Menu')
 
-
-
-
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local MainGUI = PlayerGui:WaitForChild("MainGUI")
+local guapoFrame = MainGUI:WaitForChild("guapoFrame")
+local stockFrame = guapoFrame:WaitForChild("stockFrame")
+local Content = stockFrame:WaitForChild("Content")
+local productFrame = guapoFrame:WaitForChild("productFrame")
+local contentFrame = productFrame:WaitForChild("contentFrame")
+local purchaseButton = contentFrame:WaitForChild("purchaseButton")
+
+
+
+
+Shopping:AddButton("Guapo Shop", function()
+    local args = {
+        "lilGuapo",
+        true
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("convoFunction"):FireServer(unpack(args))
+end)
+
 
 
 
@@ -1520,7 +1536,246 @@ Farm:AddToggle('GarbageAutofarm', {
         end
     end
 })
+do
+    local repzStealerEnabled = false
+    local repzStealerThread
 
+    local function pressE()
+        local VirtualInputManager = game:GetService("VirtualInputManager")
+        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+        task.wait(0.05)
+        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+    end
+
+    local function stealAllRepzPrinters()
+        while repzStealerEnabled do
+            local repzMachines = workspace:FindFirstChild("RepzMachines")
+            if repzMachines then
+                local children = repzMachines:GetChildren()
+                for i, machine in ipairs(children) do
+                    local interact
+                    pcall(function()
+                        interact = machine.MachineBody.Interact.Interaction
+                    end)
+                    if interact then
+                        local pos = machine.MachineBody.Position
+                        if btp then
+                            btp(pos)
+                        elseif tp then
+                            tp(pos)
+                        else
+                            local plr = game.Players.LocalPlayer
+                            local char = plr.Character or plr.CharacterAdded:Wait()
+                            local root = char:FindFirstChild("HumanoidRootPart")
+                            if root then
+                                root.CFrame = CFrame.new(pos)
+                            end
+                        end
+                        task.wait(0.1)
+                        pressE()
+                        task.wait(0.15)
+                    end
+                end
+            end
+            task.wait(1)
+        end
+    end
+
+    Farm:AddToggle('RepzPrinterStealer', {
+        Text = 'Repz Printer Stealer',
+        Default = false,
+        Callback = function(state)
+            repzStealerEnabled = state
+            if repzStealerEnabled then
+                if repzStealerThread and coroutine.status(repzStealerThread) ~= "dead" then
+                    return
+                end
+                repzStealerThread = coroutine.create(stealAllRepzPrinters)
+                coroutine.resume(repzStealerThread)
+            end
+        end
+    })
+end
+
+
+Farm:AddButton('Infinite Money (High Dirty Money)', function()
+    local plr = game:GetService("Players").LocalPlayer
+    local notifFrame = plr:FindFirstChild("PlayerGui")
+        and plr.PlayerGui:FindFirstChild("ScreenGui")
+        and plr.PlayerGui.ScreenGui:FindFirstChild("NotificationFrame")
+    if notifFrame then
+        notifFrame:Destroy()
+    end
+
+    local mainGui = plr:FindFirstChild("PlayerGui") and plr.PlayerGui:FindFirstChild("MainGUI")
+    if mainGui and mainGui:FindFirstChild("notificationFrame") then
+        mainGui.notificationFrame:Destroy()
+    end
+
+    local blackscreen = Instance.new("ScreenGui")
+    blackscreen.Name = "blackscreen"
+    blackscreen.IgnoreGuiInset = true
+    blackscreen.ResetOnSpawn = false
+    blackscreen.ZIndexBehavior = Enum.ZIndexBehavior.Global
+    blackscreen.Parent = game:GetService("CoreGui")
+
+    local frame = Instance.new("Frame")
+    frame.BackgroundColor3 = Color3.new(0,0,0)
+    frame.BorderSizePixel = 0
+    frame.Size = UDim2.new(1,0,1,0)
+    frame.Position = UDim2.new(0,0,0,0)
+    frame.Parent = blackscreen
+
+    local char = plr.Character or plr.CharacterAdded:Wait()
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not root then
+        blackscreen:Destroy()
+        return
+    end
+
+    local prevPos = root.CFrame
+
+    local herePos = Vector3.new(2465, 286, -1325)
+    if btp then
+        btp(herePos)
+    else
+        root.CFrame = CFrame.new(herePos)
+    end
+    task.wait(0.2)
+
+    local children = workspace:GetChildren()
+    local prompt
+    for _, obj in ipairs(workspace:GetChildren()) do
+        if obj.Name == "WashingMachine" then
+            local interaction = obj:FindFirstChild("Interaction")
+            if interaction and interaction:FindFirstChild("Prompt") then
+                prompt = interaction.Prompt
+                break
+            end
+        end
+    end
+
+    if not prompt then
+        if btp then
+            btp(prevPos.Position)
+        else
+            root.CFrame = prevPos
+        end
+        blackscreen:Destroy()
+        return
+    end
+
+    local total = 500
+    local startTime = tick()
+    for i = 1, total do
+        fireproximityprompt(prompt, 1, true)
+    end
+    local elapsed = tick() - startTime
+    if elapsed < 1 then
+        task.wait(1 - elapsed)
+    end
+
+    if btp then
+        btp(prevPos.Position)
+    else
+        root.CFrame = prevPos
+    end
+
+    blackscreen:Destroy()
+end)
+Farm:AddLabel("DM Means Dirty Money")
+Farm:AddLabel("HDM Meaning High DirtyMoney")
+Farm:AddLabel("LDM Meaning Low DirtyMoney")
+Farm:AddLabel("HDM IF YOUR DM IS 1000$+")
+Farm:AddLabel("LDM IF YOUR DM IS BELOW 1000$")
+
+
+Farm:AddButton('Infinite Money (Low Dirty Money)', function()
+    local plr = game:GetService("Players").LocalPlayer
+    local notifFrame = plr:FindFirstChild("PlayerGui")
+        and plr.PlayerGui:FindFirstChild("ScreenGui")
+        and plr.PlayerGui.ScreenGui:FindFirstChild("NotificationFrame")
+    if notifFrame then
+        notifFrame:Destroy()
+    end
+
+    local mainGui = plr:FindFirstChild("PlayerGui") and plr.PlayerGui:FindFirstChild("MainGUI")
+    if mainGui and mainGui:FindFirstChild("notificationFrame") then
+        mainGui.notificationFrame:Destroy()
+    end
+
+    local blackscreen = Instance.new("ScreenGui")
+    blackscreen.Name = "blackscreen"
+    blackscreen.IgnoreGuiInset = true
+    blackscreen.ResetOnSpawn = false
+    blackscreen.ZIndexBehavior = Enum.ZIndexBehavior.Global
+    blackscreen.Parent = game:GetService("CoreGui")
+
+    local frame = Instance.new("Frame")
+    frame.BackgroundColor3 = Color3.new(0,0,0)
+    frame.BorderSizePixel = 0
+    frame.Size = UDim2.new(1,0,1,0)
+    frame.Position = UDim2.new(0,0,0,0)
+    frame.Parent = blackscreen
+
+    local char = plr.Character or plr.CharacterAdded:Wait()
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not root then
+        blackscreen:Destroy()
+        return
+    end
+
+    local prevPos = root.CFrame
+
+    local herePos = Vector3.new(2465, 286, -1325)
+    if btp then
+        btp(herePos)
+    else
+        root.CFrame = CFrame.new(herePos)
+    end
+    task.wait(0.2)
+
+    local children = workspace:GetChildren()
+    local prompt
+    for _, obj in ipairs(workspace:GetChildren()) do
+        if obj.Name == "WashingMachine" then
+            local interaction = obj:FindFirstChild("Interaction")
+            if interaction and interaction:FindFirstChild("Prompt") then
+                prompt = interaction.Prompt
+                break
+            end
+        end
+    end
+
+    if not prompt then
+        if btp then
+            btp(prevPos.Position)
+        else
+            root.CFrame = prevPos
+        end
+        blackscreen:Destroy()
+        return
+    end
+
+    local total = 2000
+    local startTime = tick()
+    for i = 1, total do
+        fireproximityprompt(prompt, 1, true)
+    end
+    local elapsed = tick() - startTime
+    if elapsed < 1 then
+        task.wait(1 - elapsed)
+    end
+
+    if btp then
+        btp(prevPos.Position)
+    else
+        root.CFrame = prevPos
+    end
+
+    blackscreen:Destroy()
+end)
+Farm:AddLabel("Need Dirty Money To Work")
 
 
 
