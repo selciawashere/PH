@@ -1600,7 +1600,21 @@ do
 end
 
 
+local lastInfMoneyTime = 0
+
 Farm:AddButton('Infinite Money (High Dirty Money)', function()
+    local now = tick()
+    if lastInfMoneyTime and now - lastInfMoneyTime < 20 then
+        local remaining = math.ceil(20 - (now - lastInfMoneyTime))
+        if Library and Library.Notify then
+            Library:Notify("Please wait " .. remaining .. " seconds before using Infinite Money again!", 3)
+        else
+            warn("Please wait " .. remaining .. " seconds before using Infinite Money again!")
+        end
+        return
+    end
+    lastInfMoneyTime = now
+
     local plr = game:GetService("Players").LocalPlayer
 
     local dirtyMoney = 0
@@ -1717,7 +1731,7 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
 
     blackscreen:Destroy()
 end)
-Farm:AddLabel("ONLY CLICK ONCE!!!")
+
 Farm:AddLabel("DM Means Dirty Money")
 Farm:AddLabel("HDM Meaning High DirtyMoney")
 Farm:AddLabel("HDM IF YOUR DM IS 1000$+")
