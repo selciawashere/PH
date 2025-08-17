@@ -1717,7 +1717,7 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
 
     blackscreen:Destroy()
 end)
-
+Farm:AddLabel("ONLY CLICK ONCE!!!")
 Farm:AddLabel("DM Means Dirty Money")
 Farm:AddLabel("HDM Meaning High DirtyMoney")
 Farm:AddLabel("HDM IF YOUR DM IS 1000$+")
