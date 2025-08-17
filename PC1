@@ -104,6 +104,13 @@ Shopping:AddButton("Guapo Shop", function()
     }
     game:GetService("ReplicatedStorage"):WaitForChild("convoFunction"):FireServer(unpack(args))
 end)
+Shopping:AddButton("Gas Station Shop", function()
+    local args = {
+        "gasStation",
+        true
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("convoFunction"):FireServer(unpack(args))
+end)
 
 
 
@@ -1600,6 +1607,22 @@ end
 
 Farm:AddButton('Infinite Money (High Dirty Money)', function()
     local plr = game:GetService("Players").LocalPlayer
+
+    local dirtyMoney = 0
+    local settings = plr:FindFirstChild("Settings")
+    if settings and settings:FindFirstChild("Currency") and settings.Currency:GetAttribute("Dirty") then
+        dirtyMoney = settings.Currency:GetAttribute("Dirty")
+    end
+
+    if not dirtyMoney or dirtyMoney == 0 then
+        if Library and Library.Notify then
+            Library:Notify("You can't use Infinite Money! You need Dirty Money.", 3)
+        else
+            warn("You can't use Infinite Money! You need Dirty Money.")
+        end
+        return
+    end
+
     local notifFrame = plr:FindFirstChild("PlayerGui")
         and plr.PlayerGui:FindFirstChild("ScreenGui")
         and plr.PlayerGui.ScreenGui:FindFirstChild("NotificationFrame")
@@ -1643,10 +1666,11 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
     end
     task.wait(0.2)
 
-    local children = workspace:GetChildren()
     local prompt
+    local washingMachine
     for _, obj in ipairs(workspace:GetChildren()) do
         if obj.Name == "WashingMachine" then
+            washingMachine = obj
             local interaction = obj:FindFirstChild("Interaction")
             if interaction and interaction:FindFirstChild("Prompt") then
                 prompt = interaction.Prompt
@@ -1655,7 +1679,7 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
         end
     end
 
-    if not prompt then
+    if not prompt or not washingMachine then
         if btp then
             btp(prevPos.Position)
         else
@@ -1663,6 +1687,20 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
         end
         blackscreen:Destroy()
         return
+    end
+
+    local camera = workspace.CurrentCamera
+    local originalCameraType = camera.CameraType
+    local originalCameraSubject = camera.CameraSubject
+    local originalCFrame = camera.CFrame
+
+    local camTarget = washingMachine:FindFirstChild("Interaction") or washingMachine
+    if camTarget and camTarget:IsA("BasePart") then
+        camera.CameraType = Enum.CameraType.Scriptable
+        camera.CFrame = camTarget.CFrame * CFrame.new(0, 2, 5) * CFrame.Angles(0, math.pi, 0)
+    elseif washingMachine:IsA("BasePart") then
+        camera.CameraType = Enum.CameraType.Scriptable
+        camera.CFrame = washingMachine.CFrame * CFrame.new(0, 2, 5) * CFrame.Angles(0, math.pi, 0)
     end
 
     local total = 500
@@ -1674,6 +1712,10 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
     if elapsed < 1 then
         task.wait(1 - elapsed)
     end
+
+    camera.CameraType = originalCameraType
+    camera.CameraSubject = originalCameraSubject
+    camera.CFrame = originalCFrame
 
     if btp then
         btp(prevPos.Position)
@@ -1692,6 +1734,22 @@ Farm:AddLabel("LDM IF YOUR DM IS BELOW 1000$")
 
 Farm:AddButton('Infinite Money (Low Dirty Money)', function()
     local plr = game:GetService("Players").LocalPlayer
+
+    local dirtyMoney = 0
+    local settings = plr:FindFirstChild("Settings")
+    if settings and settings:FindFirstChild("Currency") and settings.Currency:GetAttribute("Dirty") then
+        dirtyMoney = settings.Currency:GetAttribute("Dirty")
+    end
+
+    if not dirtyMoney or dirtyMoney == 0 then
+        if Library and Library.Notify then
+            Library:Notify("You can't use Infinite Money! You need Dirty Money.", 3)
+        else
+            warn("You can't use Infinite Money! You need Dirty Money.")
+        end
+        return
+    end
+
     local notifFrame = plr:FindFirstChild("PlayerGui")
         and plr.PlayerGui:FindFirstChild("ScreenGui")
         and plr.PlayerGui.ScreenGui:FindFirstChild("NotificationFrame")
@@ -1757,7 +1815,7 @@ Farm:AddButton('Infinite Money (Low Dirty Money)', function()
         return
     end
 
-    local total = 2000
+    local total = 3000
     local startTime = tick()
     for i = 1, total do
         fireproximityprompt(prompt, 1, true)
