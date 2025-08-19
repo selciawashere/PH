@@ -241,7 +241,7 @@ local locations = {
     ["👕 Drip Store"] = Vector3.new(67462.6953125, 10489.0322265625, 549.5894775390625),
     ["🏧 Bank"] = Vector3.new(-240.43710327148438, 283.6267395019531, -1214.412841796875),
     ["🏪 Pawn Shop"] = Vector3.new(-1049.64306640625, 253.53065490722656, -814.2697143554688),
-    ["🏡 Penthouse"] = Vector3.new(-143, 417, -574),
+    ["🏡 Penthouse"] = Vector3.new(-204, 397, -560),
     ["🍗 Chicken Wings"] = Vector3.new(-957.9141845703125, 253.53065490722656, -815.9442138671875),
     ["🛒 Deli"] = Vector3.new(-724, 253, -677),
     ["🍕 Dominos"] = Vector3.new(-771.4325561523438, 253.22897338867188, -956.450927734375),
@@ -769,7 +769,7 @@ Vuln:AddButton("Infinite Money", function()
         end
     end
     function RunOnce()
-        teleport(Vector3.new(-433, 262, -683))
+        teleport(Vector3.new(-1556, 275, -932))
         task.wait(1)
     
         for _, item in pairs(items) do
@@ -1826,50 +1826,114 @@ AutofarmS:AddToggle('FruitzFarm', {
     Callback = function(enabled)
         FruitZJobz = enabled
 
+        local Players = game:GetService("Players")
+        local player = Players.LocalPlayer
+
+        local function getCharacter()
+            local tries = 0
+            while tries < 10 do
+                if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    return player.Character, player.Character:FindFirstChild("HumanoidRootPart")
+                end
+                tries = tries + 1
+                task.wait(0.3)
+            end
+            return nil, nil
+        end
+
+        local function teleportTo(pos)
+            local _, hrp = getCharacter()
+            if not hrp then
+                Library:Notify("Teleport failed: No HumanoidRootPart!", 3)
+                return false
+            end
+            getgenv().SwimMethod = true
+            task.wait(0.5)
+            hrp.CFrame = CFrame.new(pos)
+            getgenv().SwimMethod = false
+            return true
+        end
+
+        local function findClosestPrompt()
+            local _, hrp = getCharacter()
+            if not hrp then return nil end
+            local closest, minDist = nil, math.huge
+            for _, v in ipairs(workspace:GetDescendants()) do
+                if v:IsA("ProximityPrompt") and v.Enabled and v.Parent and (v.Parent:IsA("BasePart") or v.Parent:IsA("Attachment")) then
+                    local part = v.Parent:IsA("Attachment") and v.Parent.Parent or v.Parent
+                    if part and part:IsA("BasePart") then
+                        local dist = (hrp.Position - part.Position).Magnitude
+                        if dist < minDist then
+                            closest, minDist = v, dist
+                        end
+                    end
+                end
+            end
+            return closest
+        end
+
+        local function setPromptInstant(prompt)
+            if prompt then prompt.HoldDuration = 0 end
+        end
+
+        local function equipAndUse(itemName)
+            if not FruitZJobz then return end
+            local tool = player.Backpack:FindFirstChild(itemName) or player.Character:FindFirstChild(itemName)
+            if tool then
+                player.Character.Humanoid:EquipTool(tool)
+                task.wait(0.2)
+                local prompt = findClosestPrompt()
+                if prompt and FruitZJobz then
+                    setPromptInstant(prompt)
+                    fireproximityprompt(prompt)
+                end
+            end
+        end
+
+        local farmLoop = nil
         if FruitZJobz then
-            if not player or not player.Character then
-                Library:Notify("Error: Player or Character is nil!", 3)
+            local character, hrp = getCharacter()
+            if not character or not hrp then
+                Library:Notify("Error: Character or HumanoidRootPart is missing!", 3)
                 return
             end
-            repeat task.wait() until player.Character and player.Character:FindFirstChild("HumanoidRootPart")
 
-            local function getCharacter()
-                repeat task.wait() until player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-                return player.Character, player.Character:FindFirstChild("HumanoidRootPart")
-            end
-
-            local character, hrp = getCharacter()
             local ReplicatedStorage = game:GetService("ReplicatedStorage")
             local ExoticShopRemote = ReplicatedStorage:FindFirstChild("ExoticShopRemote")
             local ExoticStock = ReplicatedStorage:FindFirstChild("ExoticStock")
-
             if not ExoticShopRemote or not ExoticStock then
-                Library:Notify("Failed to find required remotes")
+                Library:Notify("Failed to find required remotes", 3)
                 return
             end
 
             local items = {
-                {name = "FreshWater", stock = ExoticStock.FreshWater},
-                {name = "FijiWater", stock = ExoticStock.FijiWater},
-                {name = "Ice-Fruit Bag", stock = ExoticStock["Ice-Fruit Bag"]},
-                {name = "Ice-Fruit Cupz", stock = ExoticStock["Ice-Fruit Cupz"]}
+                {name = "FreshWater", stock = ExoticStock:FindFirstChild("FreshWater")},
+                {name = "FijiWater", stock = ExoticStock:FindFirstChild("FijiWater")},
+                {name = "Ice-Fruit Bag", stock = ExoticStock:FindFirstChild("Ice-Fruit Bag")},
+                {name = "Ice-Fruit Cupz", stock = ExoticStock:FindFirstChild("Ice-Fruit Cupz")}
             }
 
-            local hasAllItems = true
-            for _, item in pairs(items) do
-                if not (player.Backpack:FindFirstChild(item.name) or player.Character:FindFirstChild(item.name)) then
-                    hasAllItems = false
-                    break
-                end
-            end
-
-            if not hasAllItems then
-                for _, item in pairs(items) do
-                    if not item.stock or item.stock.Value < 1 then
-                        Library:Notify("Not enough stock for " .. item.name)
-                        return
+            local function hasAllItems()
+                for _, item in ipairs(items) do
+                    if not (player.Backpack:FindFirstChild(item.name) or player.Character:FindFirstChild(item.name)) then
+                        return false
                     end
                 end
+                return true
+            end
+
+            local function buyMissingItems()
+                for _, item in ipairs(items) do
+                    if not (player.Backpack:FindFirstChild(item.name) or player.Character:FindFirstChild(item.name)) then
+                        if not item.stock or item.stock.Value < 1 then
+                            Library:Notify("Not enough stock for " .. item.name, 3)
+                            return false
+                        end
+                        ExoticShopRemote:InvokeServer(item.name)
+                        task.wait(0.5)
+                    end
+                end
+                return true
             end
 
             if setsimulationradius then setsimulationradius(math.huge, math.huge) end
@@ -1880,126 +1944,64 @@ AutofarmS:AddToggle('FruitzFarm', {
 
             getgenv().SwimMethod = false
 
-            local function teleport(position)
-                if not position then
-                    Library:Notify("Error: No location selected!", 3)
+            farmLoop = task.spawn(function()
+                local teleported = teleportTo(Vector3.new(-1072, 253, -1049))
+                if not teleported then
+                    Library:Notify("Failed to teleport to Exotic Shop!", 3)
+                    FruitZJobz = false
                     return
                 end
 
-                local character = player.Character
-                local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-
-                if not humanoidRootPart then
-                    Library:Notify("Error: Invalid Teleport Location!", 3)
-                    return
-                end
-
-                getgenv().SwimMethod = true
-                task.wait(1) 
-
-                humanoidRootPart.CFrame = CFrame.new(position)
-
-                getgenv().SwimMethod = false
-                Library:Notify("Teleported to location", 3)
-            end
-
-            local function BuyItem(itemName, remote)
-                if FruitZJobz then
-                    remote:InvokeServer(itemName)
-                end
-            end
-
-            local function nearprompt()
-                local _, hrp = getCharacter()
-                local closestPrompt, minDistance = nil, math.huge
-                for _, v in pairs(workspace:GetDescendants()) do
-                    if v:IsA("ProximityPrompt") and v.Enabled and v.Parent and (v.Parent:IsA("BasePart") or v.Parent:IsA("Attachment")) then
-                        local part = v.Parent:IsA("Attachment") and v.Parent.Parent or v.Parent
-                        if part and part:IsA("BasePart") then
-                            local distance = (hrp.Position - part.Position).Magnitude
-                            if distance < minDistance then
-                                closestPrompt, minDistance = v, distance
-                            end
-                        end
-                    end
-                end
-                return closestPrompt
-            end
-
-            local function setdelaysht(prompt)
-                if prompt then prompt.HoldDuration = 0 end
-            end
-
-            local function equipnclicc(itemName)
-                if not FruitZJobz then return end
-                local tool = player.Backpack:FindFirstChild(itemName) or player.Character:FindFirstChild(itemName)
-                if tool then
-                    player.Character.Humanoid:EquipTool(tool)
-                    task.wait(0.2)
-                    local prompt = nearprompt()
-                    if prompt and FruitZJobz then
-                        setdelaysht(prompt)
-                        fireproximityprompt(prompt)
-                    end
-                end
-            end
-
-            local farmLoop = nil
-            local startTime = tick()
-            local function RunOnce()
-                if not FruitZJobz then return end
-                teleport(Vector3.new(-1072, 253, -1049))
-
-                if not hasAllItems then
-                    for _, item in pairs(items) do
-                        BuyItem(item.name, ExoticShopRemote)
-                        task.wait(0.5)
+                if not hasAllItems() then
+                    if not buyMissingItems() then
+                        FruitZJobz = false
+                        return
                     end
                     task.wait(1)
                 end
 
-                local prompt = nearprompt()
+                local prompt = findClosestPrompt()
                 if prompt and FruitZJobz then
-                    setdelaysht(prompt)
+                    setPromptInstant(prompt)
                     fireproximityprompt(prompt)
+                    task.wait(0.5)
                 end
 
-                for _, item in pairs(items) do
-                    equipnclicc(item.name)
-                    task.wait(2)
+                for _, item in ipairs(items) do
+                    equipAndUse(item.name)
+                    task.wait(1.2)
                 end
 
-                if FruitZJobz then
-                    Library:Notify("Successfully Put The Ingredients For KoolAid")
-                    Library:Notify("Starting Auto-Press...")
+                Library:Notify("Successfully Put The Ingredients For KoolAid", 3)
+                Library:Notify("Starting Auto-Press...", 3)
 
-                    farmLoop = task.spawn(function()
-                        while FruitZJobz do
-                            if not FruitZJobz then break end
-                            
-                            local iceFruitCup = player.Backpack:FindFirstChild("Ice-Fruit Cupz") or player.Character:FindFirstChild("Ice-Fruit Cupz")
-                            if iceFruitCup and not player.Character:FindFirstChild("Ice-Fruit Cupz") then
-                                player.Character.Humanoid:EquipTool(iceFruitCup)
-                                task.wait(0.2)
-                            end
-                            
-                            if FruitZJobz then
-                                game:GetService("VirtualInputManager"):SendKeyEvent(true, "E", false, game)
-                                task.wait(0.1)
-                                game:GetService("VirtualInputManager"):SendKeyEvent(false, "E", false, game)
-                                if tick() - startTime > 250 then
-                                    FruitZJobz = false
-                                    break
-                                end
-                            end
-                            
-                            task.wait(0.1)
-                        end
-                    end)
+                local startTime = tick()
+                while FruitZJobz do
+                    local _, hrp = getCharacter()
+                    if not hrp then
+                        Library:Notify("Lost character, stopping farm.", 3)
+                        break
+                    end
+
+                    local iceFruitCup = player.Backpack:FindFirstChild("Ice-Fruit Cupz") or player.Character:FindFirstChild("Ice-Fruit Cupz")
+                    if iceFruitCup and not player.Character:FindFirstChild("Ice-Fruit Cupz") then
+                        player.Character.Humanoid:EquipTool(iceFruitCup)
+                        task.wait(0.2)
+                    end
+
+                    game:GetService("VirtualInputManager"):SendKeyEvent(true, "E", false, game)
+                    task.wait(0.1)
+                    game:GetService("VirtualInputManager"):SendKeyEvent(false, "E", false, game)
+
+                    if tick() - startTime > 250 then
+                        Library:Notify("Kool-Aid farm timed out.", 3)
+                        FruitZJobz = false
+                        break
+                    end
+
+                    task.wait(0.2)
                 end
-            end
-
-            RunOnce()
+            end)
         else
             FruitZJobz = false
             if farmLoop then
