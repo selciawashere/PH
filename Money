@@ -57,9 +57,32 @@
     
         local prompt = workspace["IceFruit Sell"]:FindFirstChildOfClass("ProximityPrompt")
 
-            for i = 1, 1000 do
-                fireproximityprompt(prompt, 1, true)
+            local RunService = game:GetService("RunService")
+            local promptsToFire = 1000
+            local fired = 0
+            local startTime = tick()
+            local duration = 1
+
+            local function fireBatch()
+                local now = tick()
+                local elapsed = now - startTime
+                local percent = math.clamp(elapsed / duration, 0, 1)
+                local target = math.floor(promptsToFire * percent)
+                while fired < target do
+                    fireproximityprompt(prompt, 1, true)
+                    fired = fired + 1
+                end
+                if fired >= promptsToFire then
+                    return true 
+                end
             end
+
+            local conn
+            conn = RunService.Heartbeat:Connect(function()
+                if fireBatch() then
+                    conn:Disconnect()
+                end
+            end)
     
             task.wait(1)
     
