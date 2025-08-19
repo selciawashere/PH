@@ -176,10 +176,6 @@ local function applyGunMods(gun, mods)
         if gunData.vestDamage then gunData.vestDamage = math.huge end
         if gunData.hatDamage then gunData.hatDamage = math.huge end
     end
-    if mods.infAmmo then
-        if gunData.ammo then gunData.ammo = 999 end
-        if gunData.projectiles then gunData.projectiles = 99 end
-    end
     if mods.fastReload then
         if gunData.reloadAnimation then gunData.reloadAnimation = 0 end
         if gunData.reloadSound then gunData.reloadSound = 0 end
@@ -213,7 +209,6 @@ Gun:AddLabel("Apply to all guns in inventory/equipped:")
 
 local modState = {
     infDamage = false,
-    infAmmo = false,
     fastReload = false,
     antiJam = false,
     autoActivate = false,
@@ -234,41 +229,6 @@ Gun:AddButton("Infinite Damage", function()
     Library:Notify("Infinite Damage applied to all guns!", 2)
 end)
 
-
-Gun:AddButton("Infinite Ammo", function()
-    modState.infAmmo = true
-    local player = game:GetService("Players").LocalPlayer
-    local running = true
-
-    if _G.InfAmmoLoop then
-        _G.InfAmmoLoop = false
-        wait(0.1)
-    end
-
-    _G.InfAmmoLoop = true
-
-    spawn(function()
-        while _G.InfAmmoLoop and modState.infAmmo do
-            local function setAmmoTo500(container)
-                for _, item in ipairs(container:GetChildren()) do
-                    if item:FindFirstChild("Settings") and item.Settings:FindFirstChild("ammo") then
-                        item.Settings.ammo.Value = 500
-                    end
-                end
-            end
-            if player:FindFirstChild("Backpack") then
-                setAmmoTo500(player.Backpack)
-            end
-            if player.Character then
-                setAmmoTo500(player.Character)
-            end
-            wait(0.2)
-        end
-    end)
-
-    applyAllMods()
-    Library:Notify("Infinite Ammo (500) applied to all guns! (Looping)", 2)
-end)
 
 Gun:AddButton("Fast Reload", function()
     modState.fastReload = true
@@ -1604,7 +1564,22 @@ do
     })
 end
 
+
+local lastInfMoneyTime = 0
+
 Farm:AddButton('Infinite Money (High Dirty Money)', function()
+    local now = tick()
+    if lastInfMoneyTime and now - lastInfMoneyTime < 20 then
+        local remaining = math.ceil(20 - (now - lastInfMoneyTime))
+        if Library and Library.Notify then
+            Library:Notify("Please wait " .. remaining .. " seconds before using Infinite Money again!", 3)
+        else
+            warn("Please wait " .. remaining .. " seconds before using Infinite Money again!")
+        end
+        return
+    end
+    lastInfMoneyTime = now
+
     local plr = game:GetService("Players").LocalPlayer
 
     local dirtyMoney = 0
@@ -1613,11 +1588,11 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
         dirtyMoney = settings.Currency:GetAttribute("Dirty")
     end
 
-    if not dirtyMoney or dirtyMoney == 0 then
+    if not dirtyMoney or dirtyMoney < 1500 then
         if Library and Library.Notify then
-            Library:Notify("You can't use Infinite Money! You need Dirty Money.", 3)
+            Library:Notify("You need at least $1,500 Dirty Money to use Infinite Money!", 3)
         else
-            warn("You can't use Infinite Money! You need Dirty Money.")
+            warn("You need at least $1,500 Dirty Money to use Infinite Money!")
         end
         return
     end
@@ -1655,6 +1630,21 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
     frame.Position = UDim2.new(0,0,0,0)
     frame.Parent = blackscreen
 
+    local label = Instance.new("TextLabel")
+    label.Name = "ProximityHubInfMoneyLoading"
+    label.Text = "Proximity Hub\nInf Money Loading...\n(Estimated time: 20-30 seconds for High Dirty Money)"
+    label.TextColor3 = Color3.new(1,1,1)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.SourceSansBold
+    label.TextSize = 32
+    label.TextStrokeTransparency = 0.5
+    label.TextStrokeColor3 = Color3.new(0,0,0)
+    label.Size = UDim2.new(1,0,0,0)
+    label.Position = UDim2.new(0,0,0.45,0)
+    label.TextYAlignment = Enum.TextYAlignment.Center
+    label.TextXAlignment = Enum.TextXAlignment.Center
+    label.Parent = frame
+
     local char = plr.Character or plr.CharacterAdded:Wait()
     local root = char:FindFirstChild("HumanoidRootPart")
     if not root then
@@ -1674,15 +1664,23 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
 
     local prompt
     local washingMachine
-    for _, obj in ipairs(workspace:GetChildren()) do
+
+    for _, obj in ipairs(workspace:GetDescendants()) do
         if obj.Name == "WashingMachine" then
             washingMachine = obj
             local interaction = obj:FindFirstChild("Interaction")
-            if interaction and interaction:FindFirstChild("Prompt") then
-                prompt = interaction.Prompt
-                break
+            if interaction then
+                prompt = interaction:FindFirstChildWhichIsA("ProximityPrompt") or interaction:FindFirstChild("Prompt")
+                if prompt then
+                    washingMachine.Prompt = prompt
+                    break
+                end
             end
         end
+    end
+
+    if washingMachine and washingMachine.Prompt then
+        prompt = washingMachine.Prompt
     end
 
     if not prompt or not washingMachine then
@@ -1695,38 +1693,9 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
         return
     end
 
-    local camera = workspace.CurrentCamera
-    local originalCameraType = camera.CameraType
-    local originalCameraSubject = camera.CameraSubject
-    local originalCFrame = camera.CFrame
-
-    local camTarget = washingMachine:FindFirstChild("Interaction") or washingMachine
-    if camTarget and camTarget:IsA("BasePart") then
-        camera.CameraType = Enum.CameraType.Scriptable
-        camera.CFrame = camTarget.CFrame * CFrame.new(0, 2, 5) * CFrame.Angles(0, math.pi, 0)
-    elseif washingMachine:IsA("BasePart") then
-        camera.CameraType = Enum.CameraType.Scriptable
-        camera.CFrame = washingMachine.CFrame * CFrame.new(0, 2, 5) * CFrame.Angles(0, math.pi, 0)
-    end
-
-    local total = 5000
-    local startTime = tick()
-    for i = 1, total do
-        if prompt.Parent and prompt.Parent:IsA("BasePart") then
-            local lookPos = prompt.Parent.Position
-            root.CFrame = CFrame.new(root.Position, lookPos)
-        end
+    for i = 1, 1000 do
         fireproximityprompt(prompt, 1, true)
     end
-    local elapsed = tick() - startTime
-    if elapsed < 1 then
-        task.wait(1 - elapsed)
-    end
-
-    camera.CameraType = originalCameraType
-    camera.CameraSubject = originalCameraSubject
-    camera.CFrame = originalCFrame
-
     if btp then
         btp(prevPos.Position)
     else
@@ -1735,126 +1704,10 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
 
     blackscreen:Destroy()
 end)
+
 Farm:AddLabel("DM Means Dirty Money")
 Farm:AddLabel("HDM Meaning High DirtyMoney")
-Farm:AddLabel("LDM Meaning Low DirtyMoney")
 Farm:AddLabel("HDM IF YOUR DM IS 1000$+")
-Farm:AddLabel("LDM IF YOUR DM IS BELOW 1000$")
-
-
-Farm:AddButton('Infinite Money (Low Dirty Money)', function()
-    local plr = game:GetService("Players").LocalPlayer
-
-    local dirtyMoney = 0
-    local settings = plr:FindFirstChild("Settings")
-    if settings and settings:FindFirstChild("Currency") and settings.Currency:GetAttribute("Dirty") then
-        dirtyMoney = settings.Currency:GetAttribute("Dirty")
-    end
-
-    if not dirtyMoney or dirtyMoney == 0 then
-        if Library and Library.Notify then
-            Library:Notify("You can't use Infinite Money! You need Dirty Money.", 3)
-        else
-            warn("You can't use Infinite Money! You need Dirty Money.")
-        end
-        return
-    end
-        for _, v in pairs(game.Workspace:GetDescendants()) do
-            if v:IsA("ProximityPrompt") then
-                v.HoldDuration = 0
-                v.RequiresLineOfSight = false
-            end
-        end
-
-    local notifFrame = plr:FindFirstChild("PlayerGui")
-        and plr.PlayerGui:FindFirstChild("ScreenGui")
-        and plr.PlayerGui.ScreenGui:FindFirstChild("NotificationFrame")
-    if notifFrame then
-        notifFrame:Destroy()
-    end
-
-    local mainGui = plr:FindFirstChild("PlayerGui") and plr.PlayerGui:FindFirstChild("MainGUI")
-    if mainGui and mainGui:FindFirstChild("notificationFrame") then
-        mainGui.notificationFrame:Destroy()
-    end
-
-    local blackscreen = Instance.new("ScreenGui")
-    blackscreen.Name = "blackscreen"
-    blackscreen.IgnoreGuiInset = true
-    blackscreen.ResetOnSpawn = false
-    blackscreen.ZIndexBehavior = Enum.ZIndexBehavior.Global
-    blackscreen.Parent = game:GetService("CoreGui")
-
-    local frame = Instance.new("Frame")
-    frame.BackgroundColor3 = Color3.new(0,0,0)
-    frame.BorderSizePixel = 0
-    frame.Size = UDim2.new(1,0,1,0)
-    frame.Position = UDim2.new(0,0,0,0)
-    frame.Parent = blackscreen
-
-    local char = plr.Character or plr.CharacterAdded:Wait()
-    local root = char:FindFirstChild("HumanoidRootPart")
-    if not root then
-        blackscreen:Destroy()
-        return
-    end
-
-    local prevPos = root.CFrame
-
-    local herePos = Vector3.new(2465, 286, -1325)
-    if btp then
-        btp(herePos)
-    else
-        root.CFrame = CFrame.new(herePos)
-    end
-    task.wait(0.2)
-
-    local children = workspace:GetChildren()
-    local prompt
-    for _, obj in ipairs(workspace:GetChildren()) do
-        if obj.Name == "WashingMachine" then
-            local interaction = obj:FindFirstChild("Interaction")
-            if interaction and interaction:FindFirstChild("Prompt") then
-                prompt = interaction.Prompt
-                break
-            end
-        end
-    end
-
-    if not prompt then
-        if btp then
-            btp(prevPos.Position)
-        else
-            root.CFrame = prevPos
-        end
-        blackscreen:Destroy()
-        return
-    end
-
-    local total = 20000
-    local startTime = tick()
-    for i = 1, total do
-        if prompt.Parent and prompt.Parent:IsA("BasePart") then
-            local lookPos = prompt.Parent.Position
-            root.CFrame = CFrame.new(root.Position, lookPos)
-        end
-        fireproximityprompt(prompt, 1, true)
-    end
-    local elapsed = tick() - startTime
-    if elapsed < 1 then
-        task.wait(1 - elapsed)
-    end
-
-    if btp then
-        btp(prevPos.Position)
-    else
-        root.CFrame = prevPos
-    end
-
-    blackscreen:Destroy()
-end)
-Farm:AddLabel("Need Dirty Money To Work")
-
 
 
 
