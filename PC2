@@ -1584,7 +1584,7 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
         dirtyMoney = settings.Currency:GetAttribute("Dirty")
     end
 
-    if not dirtyMoney or dirtyMoney < 1500 then
+    if not dirtyMoney or dirtyMoney < 200 then
         if Library and Library.Notify then
             Library:Notify("You need at least $1,500 Dirty Money to use Infinite Money!", 3)
         else
