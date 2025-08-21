@@ -1566,7 +1566,6 @@ end
 
 
 local lastInfMoneyTime = 0
-
 Farm:AddButton('Infinite Money (High Dirty Money)', function()
     local now = tick()
     if lastInfMoneyTime and now - lastInfMoneyTime < 20 then
@@ -1588,7 +1587,7 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
         dirtyMoney = settings.Currency:GetAttribute("Dirty")
     end
 
-    if not dirtyMoney or dirtyMoney < 200 then
+    if not dirtyMoney or dirtyMoney < 1500 then
         if Library and Library.Notify then
             Library:Notify("You need at least $1,500 Dirty Money to use Infinite Money!", 3)
         else
@@ -1696,13 +1695,15 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
     for i = 1, 1000 do
         fireproximityprompt(prompt, 1, true)
     end
+
+    -- Remove blackscreen immediately after firing proximityprompt
+    blackscreen:Destroy()
+
     if btp then
         btp(prevPos.Position)
     else
         root.CFrame = prevPos
     end
-
-    blackscreen:Destroy()
 end)
 
 Farm:AddLabel("DM Means Dirty Money")
