@@ -1560,7 +1560,6 @@ do
         end
     })
 end
-
 Farm:AddButton('Infinite Money (High Dirty Money)', function()
     local plr = game:GetService("Players").LocalPlayer
 
@@ -1652,43 +1651,19 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
     end
     task.wait(0.2)
 
-    local prompt
-    local washingMachine
-
-    local washingMachineObj = workspace:GetChildren()[WashingMachine]
-    if washingMachineObj and washingMachineObj:FindFirstChild("Interaction") then
-        washingMachine = washingMachineObj
-        prompt = washingMachineObj.Interaction:FindFirstChild("Prompt")
-        if not prompt then
-            prompt = washingMachineObj.Interaction:FindFirstChildWhichIsA("ProximityPrompt")
-        end
-        if prompt then
-            washingMachine.Prompt = prompt
-        else
-            local nearestPrompt, nearestDist
-            local rootPos = root and root.Position
-            if rootPos then
-                for _, obj in ipairs(workspace:GetDescendants()) do
-                    if obj:IsA("ProximityPrompt") and obj.Parent and obj.Parent:IsA("BasePart") then
-                        local dist = (obj.Parent.Position - rootPos).Magnitude
-                        if not nearestDist or dist < nearestDist then
-                            nearestPrompt = obj
-                            nearestDist = dist
-                        end
-                    end
-                end
-                if nearestPrompt then
-                    fireproximityprompt(nearestPrompt, 1, true)
-                end
+    local washingMachinePos = herePos
+    local nearestPrompt, nearestDist
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("ProximityPrompt") and obj.Parent and obj.Parent:IsA("BasePart") then
+            local dist = (obj.Parent.Position - washingMachinePos).Magnitude
+            if not nearestDist or dist < nearestDist then
+                nearestPrompt = obj
+                nearestDist = dist
             end
         end
     end
 
-    if washingMachine and washingMachine.Prompt then
-        prompt = washingMachine.Prompt
-    end
-
-    if not prompt or not washingMachine then
+    if not nearestPrompt then
         if btp then
             btp(prevPos.Position)
         else
@@ -1701,7 +1676,7 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
     end
 
     for i = 1, 10000 do
-        fireproximityprompt(prompt, 1, true)
+        fireproximityprompt(nearestPrompt, 1, true)
     end
 
     if blackscreen and blackscreen.Parent then
