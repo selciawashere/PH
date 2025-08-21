@@ -1561,7 +1561,6 @@ do
     })
 end
 
-
 Farm:AddButton('Infinite Money (High Dirty Money)', function()
     local plr = game:GetService("Players").LocalPlayer
 
@@ -1599,12 +1598,18 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
         mainGui.notificationFrame:Destroy()
     end
 
+    local coreGui = game:GetService("CoreGui")
+    local existing = coreGui:FindFirstChild("blackscreen")
+    if existing then
+        pcall(function() existing:Destroy() end)
+    end
+
     local blackscreen = Instance.new("ScreenGui")
     blackscreen.Name = "blackscreen"
     blackscreen.IgnoreGuiInset = true
     blackscreen.ResetOnSpawn = false
     blackscreen.ZIndexBehavior = Enum.ZIndexBehavior.Global
-    blackscreen.Parent = game:GetService("CoreGui")
+    blackscreen.Parent = coreGui
 
     local frame = Instance.new("Frame")
     frame.BackgroundColor3 = Color3.new(0,0,0)
@@ -1631,7 +1636,9 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
     local char = plr.Character or plr.CharacterAdded:Wait()
     local root = char:FindFirstChild("HumanoidRootPart")
     if not root then
-        blackscreen:Destroy()
+        if blackscreen and blackscreen.Parent then
+            pcall(function() blackscreen:Destroy() end)
+        end
         return
     end
 
@@ -1648,15 +1655,30 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
     local prompt
     local washingMachine
 
-    for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj.Name == "WashingMachine" then
-            washingMachine = obj
-            local interaction = obj:FindFirstChild("Interaction")
-            if interaction then
-                prompt = interaction:FindFirstChildWhichIsA("ProximityPrompt") or interaction:FindFirstChild("Prompt")
-                if prompt then
-                    washingMachine.Prompt = prompt
-                    break
+    local washingMachineObj = workspace:GetChildren()[WashingMachine]
+    if washingMachineObj and washingMachineObj:FindFirstChild("Interaction") then
+        washingMachine = washingMachineObj
+        prompt = washingMachineObj.Interaction:FindFirstChild("Prompt")
+        if not prompt then
+            prompt = washingMachineObj.Interaction:FindFirstChildWhichIsA("ProximityPrompt")
+        end
+        if prompt then
+            washingMachine.Prompt = prompt
+        else
+            local nearestPrompt, nearestDist
+            local rootPos = root and root.Position
+            if rootPos then
+                for _, obj in ipairs(workspace:GetDescendants()) do
+                    if obj:IsA("ProximityPrompt") and obj.Parent and obj.Parent:IsA("BasePart") then
+                        local dist = (obj.Parent.Position - rootPos).Magnitude
+                        if not nearestDist or dist < nearestDist then
+                            nearestPrompt = obj
+                            nearestDist = dist
+                        end
+                    end
+                end
+                if nearestPrompt then
+                    fireproximityprompt(nearestPrompt, 1, true)
                 end
             end
         end
@@ -1672,7 +1694,9 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
         else
             root.CFrame = prevPos
         end
-        blackscreen:Destroy()
+        if blackscreen and blackscreen.Parent then
+            pcall(function() blackscreen:Destroy() end)
+        end
         return
     end
 
@@ -1680,7 +1704,9 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
         fireproximityprompt(prompt, 1, true)
     end
 
-    blackscreen:Destroy()
+    if blackscreen and blackscreen.Parent then
+        pcall(function() blackscreen:Destroy() end)
+    end
 
     if btp then
         btp(prevPos.Position)
