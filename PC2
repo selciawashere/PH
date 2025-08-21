@@ -1400,7 +1400,7 @@ Farm:AddToggle('FastWoodAutofarm', {
     end
 })
 Farm:AddDivider()
-local garbageAutofarmEnabled = false
+--[[local garbageAutofarmEnabled = false
 local garbageAutofarmThread
 
 local function tp(pos)
@@ -1499,7 +1499,7 @@ Farm:AddToggle('GarbageAutofarm', {
             jump()
         end
     end
-})
+})]]--
 do
     local repzStealerEnabled = false
     local repzStealerThread
