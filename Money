@@ -56,16 +56,19 @@
         end
     
 
-            local promptsToFire = 1000
-            local prompt = workspace["IceFruit Sell"].ProximityPrompt
-
-            for i = 1, promptsToFire do
-                fireproximityprompt(prompt, 1, true)
+            local prompt = workspace:FindFirstChild("IceFruit Sell") and workspace["IceFruit Sell"]:FindFirstChildOfClass("ProximityPrompt")
+            if prompt then
+                for i = 1, 500 do
+                    for j = 1, 50 do
+                        fireproximityprompt(prompt, 1, true)
+                    end
+                    task.wait(0.01)
+                end
+                print("Fired proximity prompt in timed batches.")
+            else
+                warn("IceFruit Sell ProximityPrompt not found!")
             end
-
-            print("Does it fire?", true)
-            task.wait(1)
-    
+            task.wait(2)
             for _, part in pairs(character:GetDescendants()) do
                 if part:IsA("BasePart") then
                     part.Anchored = false
