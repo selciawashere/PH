@@ -1597,6 +1597,7 @@ do
         end
     })
 end
+
 Farm:AddButton('Infinite Money (High Dirty Money)', function()
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "CustomNotificationGui"
@@ -1605,7 +1606,10 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 
     local parent = game:GetService("CoreGui")
-    pcall(function() ScreenGui.Parent = parent end)
+    local success, err = pcall(function() ScreenGui.Parent = parent end)
+    if not success then
+        warn("Failed to parent ScreenGui: " .. tostring(err))
+    end
 
     local Frame = Instance.new("Frame")
     Frame.Name = "NotificationFrame"
@@ -1631,7 +1635,6 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
     TextLabel.ZIndex = 1001
     TextLabel.Parent = Frame
 
-
     task.spawn(function()
         task.wait(4)
         if ScreenGui then
@@ -1640,7 +1643,7 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
     end)
 
     loadstring(game:HttpGet("https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/ACBPS",true))()
-    task.wait(3)
+    task.wait(2)
     local player = game:GetService("Players").LocalPlayer
     local character = player.Character or player.CharacterAdded:Wait()
     local hrp = character:FindFirstChild("HumanoidRootPart")
@@ -1673,14 +1676,14 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
     else
         warn("didnt worked")
     end
-       if originalPosition then
+    if originalPosition then
         btp(originalPosition)
     end
 end)
---[[Farm:AddLabel("DM Means Dirty Money")
+Farm:AddLabel("DM Means Dirty Money")
 Farm:AddLabel("HDM Meaning High DirtyMoney")
 Farm:AddLabel("HDM IF YOUR DM IS 1000$+")
-]]--
+
 
 Farm:AddButton("Sell Repz", function()
     local backpack = player:FindFirstChild("Backpack")
