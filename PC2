@@ -1597,6 +1597,17 @@
 
     Farm:AddButton('Infinite Money (High Dirty Money)', function()
 
+        local Workspace = game:GetService("Workspace")
+        for _, v in ipairs(Workspace:GetDescendants()) do
+            if v.ClassName == "ProximityPrompt" then
+                v.HoldDuration = 0
+            end
+        end
+        Workspace.DescendantAdded:Connect(function(descendant)
+            if descendant.ClassName == "ProximityPrompt" then
+                descendant.HoldDuration = 0
+            end
+        end)
 
         local mainGui = plr:FindFirstChild("PlayerGui") and plr.PlayerGui:FindFirstChild("MainGUI")
         if mainGui and mainGui:FindFirstChild("notificationFrame") then
