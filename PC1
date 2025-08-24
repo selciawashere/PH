@@ -22,6 +22,7 @@
     - LumberJack Farm
     - Garbage Farm
 ]]
+
 local player = game.Players.LocalPlayer
 if not player or not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
     game:GetService("ReplicatedStorage"):WaitForChild("whitney"):FireServer()
@@ -1643,14 +1644,14 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
     end)
 
     loadstring(game:HttpGet("https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/ACBPS",true))()
-    task.wait(2)
+    task.wait(5)
     local player = game:GetService("Players").LocalPlayer
     local character = player.Character or player.CharacterAdded:Wait()
     local hrp = character:FindFirstChild("HumanoidRootPart")
     local originalPosition = hrp and hrp.Position
 
     btp(Vector3.new(2465, 286, -1341))
-
+    task.wait(10)
     local player = game:GetService("Players").LocalPlayer
     local character = player.Character or player.CharacterAdded:Wait()
     local hrp = character:FindFirstChild("HumanoidRootPart")
@@ -1670,15 +1671,35 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
     end
 
     if foundPrompt then
-        for i = 1, 10000 do
-            fireproximityprompt(foundPrompt)
+        local success = false
+        if typeof(fireproximityprompt) == "function" then
+            for i = 1, 5000 do
+                fireproximityprompt(foundPrompt)
+            end
+            success = true
+        end
+
+        if not success and foundPrompt.HoldDuration and foundPrompt.ObjectText then
+            local originalHold = foundPrompt.HoldDuration
+            foundPrompt.HoldDuration = 0
+            foundPrompt.Enabled = true
+            for i = 1, 5000 do
+                pcall(function()
+                    foundPrompt:InputHoldBegin()
+                    foundPrompt:InputHoldEnd()
+                end)
+            end
+            foundPrompt.HoldDuration = originalHold
+            success = true
+        end
+
+        if not success then
+            warn("Could not trigger ProximityPrompt: fireproximityprompt not available and mobile fallback failed.")
         end
     else
         warn("didnt worked")
     end
-    if originalPosition then
-        btp(originalPosition)
-    end
+
 end)
 Farm:AddLabel("DM Means Dirty Money")
 Farm:AddLabel("HDM Meaning High DirtyMoney")
