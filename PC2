@@ -1597,7 +1597,7 @@
 
     Farm:AddButton('Infinite Money (High Dirty Money)', function()
 
-        
+
         local mainGui = plr:FindFirstChild("PlayerGui") and plr.PlayerGui:FindFirstChild("MainGUI")
         if mainGui and mainGui:FindFirstChild("notificationFrame") then
             mainGui.notificationFrame:Destroy()
@@ -1654,39 +1654,61 @@
         local originalPosition = hrp and hrp.Position
 
         btp(Vector3.new(2481, 286, -1333))
+        Library:Notify("Wait For 15 seconds")
         task.wait(15)
-        local prompt = workspace:FindFirstChild("WashingMachine")
-            and workspace.WashingMachine:FindFirstChild("Interaction")
-            and workspace.WashingMachine.Interaction:FindFirstChild("Prompt")
+        local function fireNearestPrompt5000x()
+            local player = game:GetService("Players").LocalPlayer
+            local character = player.Character or player.CharacterAdded:Wait()
+            local hrp = character:FindFirstChild("HumanoidRootPart")
+            if not hrp then
+                warn("No HumanoidRootPart found!")
+                return
+            end
 
-        if prompt and prompt:IsA("ProximityPrompt") then
-            local success = false
-            if typeof(fireproximityprompt) == "function" then
-                for i = 1, 5000 do
-                    fireproximityprompt(prompt)
+            local closestPrompt = nil
+            local closestDist = math.huge
+
+            for _, obj in ipairs(workspace:GetDescendants()) do
+                if obj:IsA("ProximityPrompt") and obj.Name == "Prompt" then
+                    local parent = obj.Parent
+                    local part = parent and parent:IsA("BasePart") and parent or (parent and parent.Parent and parent.Parent:IsA("BasePart") and parent.Parent)
+                    if part then
+                        local dist = (part.Position - hrp.Position).Magnitude
+                        if dist < closestDist then
+                            closestDist = dist
+                            closestPrompt = obj
+                        end
+                    end
                 end
-                success = true
             end
 
-            if not success and prompt.HoldDuration and prompt.ObjectText then
-                local originalHold = prompt.HoldDuration
-                prompt.HoldDuration = 0
-                prompt.Enabled = true
-                for i = 1, 5000 do
-                    pcall(function()
-                        prompt:InputHoldBegin()
-                        prompt:InputHoldEnd()
-                    end)
+
+
+            if closestPrompt then
+                closestPrompt.Exclusivity = Enum.ProximityPromptExclusivity.AlwaysShow
+                closestPrompt.MaxActivationDistance = 100
+                closestPrompt.RequiresLineOfSight = false
+                closestPrompt.Enabled = true
+
+                if typeof(fireproximityprompt) == "function" then
+                    for i = 1, 5000 do
+                        fireproximityprompt(closestPrompt, 1, true)
+                    end
+                else
+                    for i = 1, 5000 do
+                        pcall(function()
+                            closestPrompt:InputHoldBegin()
+                            task.wait(closestPrompt.HoldDuration > 0 and closestPrompt.HoldDuration + 0.1 or 0.1)
+                            closestPrompt:InputHoldEnd()
+                        end)
+                    end
                 end
-                prompt.HoldDuration = originalHold
-                success = true
+            else
+                warn("No ProximityPrompt named 'Prompt' found near your character.")
             end
+        end
 
-            if not success then
-                warn("Could not trigger WashingMachine ProximityPrompt: fireproximityprompt not available and mobile fallback failed.")
-            end
-        else
-            warn("Could not find workspace.WashingMachine.Interaction.Prompt")
+        fireNearestPrompt5000x()
         end
 
     end)
