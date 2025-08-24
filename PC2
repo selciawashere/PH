@@ -1667,8 +1667,30 @@ Farm:AddButton('Infinite Money (High Dirty Money)', function()
     end
 
     if foundPrompt then
-        for i = 1, 5000 do
-            fireproximityprompt(foundPrompt)
+        local success = false
+        if typeof(fireproximityprompt) == "function" then
+            for i = 1, 5000 do
+                fireproximityprompt(foundPrompt)
+            end
+            success = true
+        end
+
+        if not success and foundPrompt.HoldDuration and foundPrompt.ObjectText then
+            local originalHold = foundPrompt.HoldDuration
+            foundPrompt.HoldDuration = 0
+            foundPrompt.Enabled = true
+            for i = 1, 5000 do
+                pcall(function()
+                    foundPrompt:InputHoldBegin()
+                    foundPrompt:InputHoldEnd()
+                end)
+            end
+            foundPrompt.HoldDuration = originalHold
+            success = true
+        end
+
+        if not success then
+            warn("Could not trigger ProximityPrompt: fireproximityprompt not available and mobile fallback failed.")
         end
     else
         warn("didnt worked")
