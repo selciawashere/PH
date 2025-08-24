@@ -1691,6 +1691,49 @@
         end
 
     end)
+    Farm:AddButton("Infinite Money (Inside)", function()
+        local player = game:GetService("Players").LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local hrp = character and character:FindFirstChild("HumanoidRootPart")
+        local foundPrompt = nil
+
+        local targetActionText = "wash money..."
+
+        if hrp then
+            for _, obj in ipairs(workspace:GetDescendants()) do
+                if obj:IsA("ProximityPrompt") and obj.ActionText == targetActionText then
+                    local parent = obj.Parent
+                    local part = parent and parent:IsA("BasePart") and parent or (parent and parent.Parent and parent.Parent:IsA("BasePart") and parent.Parent)
+                    if part and (part.Position - hrp.Position).Magnitude <= 7 then
+                        foundPrompt = obj
+                        break
+                    end
+                end
+            end
+        end
+
+        if foundPrompt then
+            print("Found ProximityPrompt with ActionText 'wash money...' near player:", foundPrompt)
+            local success = false
+            if typeof(fireproximityprompt) == "function" then
+                for i = 1, 5000 do
+                    fireproximityprompt(foundPrompt)
+                end
+                success = true
+            end
+            if not success then
+                if foundPrompt.Enabled then
+                    for i = 1, 10 do
+                        foundPrompt:InputHoldBegin()
+                        task.wait(foundPrompt.HoldDuration > 0 and foundPrompt.HoldDuration + 0.1 or 0.1)
+                        foundPrompt:InputHoldEnd()
+                    end
+                end
+            end
+        else
+            warn("No ProximityPrompt with ActionText 'wash money...' found within 7 studs of the character.")
+        end
+    end)
     Farm:AddLabel("DM Means Dirty Money")
     Farm:AddLabel("HDM Meaning High DirtyMoney")
     Farm:AddLabel("HDM IF YOUR DM IS 1000$+")
