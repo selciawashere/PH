@@ -1,3 +1,4 @@
+
 -- phillystreets 2
 -- Started On August 3 
 -- Script Made By DragonCodess
@@ -21,6 +22,15 @@
     - LumberJack Farm
     - Garbage Farm
 ]]
+
+local player = game.Players.LocalPlayer
+if not player or not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
+    game:GetService("ReplicatedStorage"):WaitForChild("whitney"):FireServer()
+    task.wait(2)
+    game:GetService("ReplicatedStorage"):WaitForChild("whitney"):FireServer()
+    task.wait(4)
+    game:GetService("ReplicatedStorage"):WaitForChild("whitney"):FireServer()
+end
 print("Mobile UI Loaded")
 
 
@@ -724,8 +734,9 @@ Feature:AddToggle('InfiniteStamina', {
     end
 })
 
-
-
+Feature:AddButton("INSTANT RESPAWN", function()
+    game:GetService("ReplicatedStorage"):WaitForChild("whitney"):FireServer()
+end)
 
 
 
@@ -1400,6 +1411,7 @@ Farm:AddToggle('FastWoodAutofarm', {
     end
 })
 Farm:AddDivider()
+
 --[[local garbageAutofarmEnabled = false
 local garbageAutofarmThread
 
@@ -1502,7 +1514,6 @@ Farm:AddToggle('GarbageAutofarm', {
 })]]--
 do
     local repzStealerEnabled = false
-    local repzStealerThread
 
     local function pressE()
         local VirtualInputManager = game:GetService("VirtualInputManager")
@@ -1511,37 +1522,64 @@ do
         VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
     end
 
+    local function equipEmptyShoeBox()
+        local plr = game:GetService("Players").LocalPlayer
+        local backpack = plr and plr:FindFirstChild("Backpack")
+        if backpack and backpack:FindFirstChild("Empty Shoe Box") then
+            local tool = backpack["Empty Shoe Box"]
+            local char = plr.Character or plr.CharacterAdded:Wait()
+            if char and tool then
+                tool.Parent = char
+                return true
+            end
+        end
+        return false
+    end
+
     local function stealAllRepzPrinters()
-        while repzStealerEnabled do
-            local repzMachines = workspace:FindFirstChild("RepzMachines")
-            if repzMachines then
-                local children = repzMachines:GetChildren()
-                for i, machine in ipairs(children) do
-                    local interact
-                    pcall(function()
-                        interact = machine.MachineBody.Interact.Interaction
-                    end)
-                    if interact then
-                        local pos = machine.MachineBody.Position
+        local plr = game:GetService("Players").LocalPlayer
+        local char = plr.Character or plr.CharacterAdded:Wait()
+        local root = char:FindFirstChild("HumanoidRootPart")
+        local prevPos = root and root.CFrame
+
+        local repzMachines = workspace:FindFirstChild("RepzMachines")
+        if repzMachines then
+            local children = repzMachines:GetChildren()
+            for i, machine in ipairs(children) do
+                if not repzStealerEnabled then return end 
+                local interact
+                pcall(function()
+                    interact = machine.MachineBody.Interact.Interaction
+                end)
+                if interact then
+                    local pos = machine.MachineBody.Position
+                    if btp then
+                        btp(pos)
+                    elseif tp then
+                        tp(pos)
+                    else
+                        if root then
+                            root.CFrame = CFrame.new(pos)
+                        end
+                    end
+                    task.wait(0.01)
+                    equipEmptyShoeBox()
+                    pressE()
+                    task.wait(0.01)
+                    if prevPos then
                         if btp then
-                            btp(pos)
+                            btp(prevPos.Position)
                         elseif tp then
-                            tp(pos)
+                            tp(prevPos.Position)
                         else
-                            local plr = game.Players.LocalPlayer
-                            local char = plr.Character or plr.CharacterAdded:Wait()
-                            local root = char:FindFirstChild("HumanoidRootPart")
                             if root then
-                                root.CFrame = CFrame.new(pos)
+                                root.CFrame = prevPos
                             end
                         end
-                        task.wait(0.1)
-                        pressE()
-                        task.wait(0.15)
                     end
+                    task.wait(0.01)
                 end
             end
-            task.wait(1)
         end
     end
 
@@ -1551,114 +1589,169 @@ do
         Callback = function(state)
             repzStealerEnabled = state
             if repzStealerEnabled then
-                if repzStealerThread and coroutine.status(repzStealerThread) ~= "dead" then
-                    return
-                end
-                repzStealerThread = coroutine.create(stealAllRepzPrinters)
-                coroutine.resume(repzStealerThread)
+                stealAllRepzPrinters()
             end
         end
     })
 end
---[[Farm:AddButton('Infinite Money (High Dirty Money)', function()
-    local plr = game:GetService("Players").LocalPlayer
 
-    local dirtyMoney = 0
-    local settings = plr:FindFirstChild("Settings")
-    if settings and settings:FindFirstChild("Currency") and settings.Currency:GetAttribute("Dirty") then
-        dirtyMoney = settings.Currency:GetAttribute("Dirty")
+Farm:AddButton('Infinite Money (High Dirty Money)', function()
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "CustomNotificationGui"
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.IgnoreGuiInset = true
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+
+    local parent = game:GetService("CoreGui")
+    local success, err = pcall(function() ScreenGui.Parent = parent end)
+    if not success then
+        warn("Failed to parent ScreenGui: " .. tostring(err))
     end
 
-    if not dirtyMoney or dirtyMoney < 200 then
-        if Library and Library.Notify then
-            Library:Notify("You need at least $1,500 Dirty Money to use Infinite Money!", 3)
-        else
-            warn("You need at least $1,500 Dirty Money to use Infinite Money!")
+    local Frame = Instance.new("Frame")
+    Frame.Name = "NotificationFrame"
+    Frame.Size = UDim2.new(0, 350, 0, 80)
+    Frame.Position = UDim2.new(1, -370, 1, -100)
+    Frame.BackgroundColor3 = Color3.new(0,0,0)
+    Frame.BackgroundTransparency = 0.2
+    Frame.BorderSizePixel = 0
+    Frame.AnchorPoint = Vector2.new(0,1)
+    Frame.ZIndex = 1000
+    Frame.Parent = ScreenGui
+
+    local TextLabel = Instance.new("TextLabel")
+    TextLabel.Name = "NotificationText"
+    TextLabel.Size = UDim2.new(1, -20, 1, -20)
+    TextLabel.Position = UDim2.new(0, 10, 0, 10)
+    TextLabel.BackgroundTransparency = 1
+    TextLabel.Text = "Infinite Money Script Activated!\nPlease wait while the script runs."
+    TextLabel.TextColor3 = Color3.new(1,1,1)
+    TextLabel.TextStrokeTransparency = 0.5
+    TextLabel.TextScaled = true
+    TextLabel.Font = Enum.Font.GothamBold
+    TextLabel.ZIndex = 1001
+    TextLabel.Parent = Frame
+
+    task.spawn(function()
+        task.wait(4)
+        if ScreenGui then
+            ScreenGui:Destroy()
         end
-        return
-    end
+    end)
 
-    for _, v in pairs(game.Workspace:GetDescendants()) do
-        if v:IsA("ProximityPrompt") then
-            v.HoldDuration = 0
-            v.RequiresLineOfSight = false
-        end
-    end
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/ACBPS",true))()
+    task.wait(5)
+    local player = game:GetService("Players").LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    local originalPosition = hrp and hrp.Position
 
-    local notifFrame = plr:FindFirstChild("PlayerGui")
-        and plr.PlayerGui:FindFirstChild("ScreenGui")
-        and plr.PlayerGui.ScreenGui:FindFirstChild("NotificationFrame")
-    if notifFrame then
-        notifFrame:Destroy()
-    end
+    btp(Vector3.new(2465, 286, -1341))
+    task.wait(10)
+    local player = game:GetService("Players").LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    local foundPrompt = nil
 
-    local mainGui = plr:FindFirstChild("PlayerGui") and plr.PlayerGui:FindFirstChild("MainGUI")
-    if mainGui and mainGui:FindFirstChild("notificationFrame") then
-        mainGui.notificationFrame:Destroy()
-    end
-
-    local char = plr.Character or plr.CharacterAdded:Wait()
-    local root = char:FindFirstChild("HumanoidRootPart")
-    if not root then
-        return
-    end
-
-    local prevPos = root.CFrame
-
-    -- Teleport to the specified position before firing the prompt
-    local targetPos = Vector3.new(2462, 286, -1325)
-    if btp then
-        btp(targetPos)
-    else
-        root.CFrame = CFrame.new(targetPos)
-    end
-
-    task.wait(1) -- Wait 1 second after teleporting
-
-    -- Find the WashingMachine and its Interaction.Prompt
-    local prompt
-    for _, obj in ipairs(workspace:GetChildren()) do
-        if obj.Name == "WashingMachine" then
-            local interaction = obj:FindFirstChild("Interaction")
-            if interaction then
-                local proxPrompt = interaction:FindFirstChild("Prompt")
-                if proxPrompt and proxPrompt:IsA("ProximityPrompt") then
-                    prompt = proxPrompt
+    if hrp then
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("ProximityPrompt") then
+                local parent = obj.Parent
+                local part = parent and parent:IsA("BasePart") and parent or (parent and parent.Parent and parent.Parent:IsA("BasePart") and parent.Parent)
+                if part and (part.Position - hrp.Position).Magnitude <= 7 then
+                    foundPrompt = obj
                     break
                 end
             end
         end
     end
 
-    if not prompt then
+    if foundPrompt then
+        for i = 1, 5000 do
+            fireproximityprompt(foundPrompt)
+        end
+    else
+        warn("didnt worked")
+    end
+
+end)
+Farm:AddLabel("DM Means Dirty Money")
+Farm:AddLabel("HDM Meaning High DirtyMoney")
+Farm:AddLabel("HDM IF YOUR DM IS 1000$+")
+
+
+Farm:AddButton("Sell Repz", function()
+    local backpack = player:FindFirstChild("Backpack")
+    local equipped = false
+    if backpack then
+        for _, item in ipairs(backpack:GetChildren()) do
+            if item.Name:find(" Repz") then
+                local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+                if humanoid then
+                    humanoid:EquipTool(item)
+                    equipped = true
+                    break
+                end
+            end
+        end
+    end
+    if not equipped and player.Character then
+        for _, item in ipairs(player.Character:GetChildren()) do
+            if item:IsA("Tool") and item.Name:find(" Repz") then
+                equipped = true
+                break
+            end
+        end
+    end
+
+
+
+    local player = game:GetService("Players").LocalPlayer
+    local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    if not root then
+        warn("Could not find HumanoidRootPart!")
+        return
+    end
+
+    local prevPos = root.CFrame
+
+    local targetPos = Vector3.new(2486, 284, -369)
+    if btp then
+        btp(targetPos)
+    else
+        root.CFrame = CFrame.new(targetPos)
+    end
+
+    task.wait(1)
+
+    local prompt = nil
+    local success, err = pcall(function()
+        prompt = workspace.Interactions.sellInteractions.repzPart.Interaction
+    end)
+    if not success or not prompt or not prompt:IsA("ProximityPrompt") then
         if Library and Library.Notify then
-            Library:Notify("Could not find WashingMachine Interaction Prompt!", 3)
+            Library:Notify("Could not find Repz Interaction Prompt!", 3)
         else
-            warn("Could not find WashingMachine Interaction Prompt!")
+            warn("Could not find Repz Interaction Prompt!")
+        end
+        if btp then
+            btp(prevPos.Position)
+        else
+            root.CFrame = prevPos
         end
         return
     end
 
-    local fireCount = 1000
-    for i = 1, fireCount do
+    for i = 1, 1 do
         fireproximityprompt(prompt, 1, true)
     end
 
-    -- Return to previous position
     if btp then
         btp(prevPos.Position)
     else
         root.CFrame = prevPos
     end
 end)
---]]
---[[Farm:AddLabel("DM Means Dirty Money")
-Farm:AddLabel("HDM Meaning High DirtyMoney")
-Farm:AddLabel("HDM IF YOUR DM IS 1000$+")
-]]--
-
-
-
 
 
 local teamCheck = false
