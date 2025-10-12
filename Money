@@ -43,7 +43,7 @@
     local originalCF = character:GetPivot()
     getgenv().SwimMethod = true
     task.wait(1)
-    character:PivotTo(CFrame.new(-50, 287, -320))
+    character:PivotTo(CFrame.new(-68, 287, -321))
 
     for _, v in pairs(game.Workspace:GetDescendants()) do
         if v:IsA("ProximityPrompt") then
