@@ -1,1 +1,2615 @@
 
+-- phillystreets 2
+    -- Started On August 3 
+-- Script Made By DragonCodess
+
+
+--[[ 
+        Philly Streets 2
+        GUN MOD MENU 
+        Features:
+        - Infinite Damage
+        - Infinite Ammo
+        - Fast Reload
+        - Anti Jam
+        - Auto Activate
+        - No Recoil
+        - Fast Equip
+        - Fast Shoot / No FireRate
+        AUTO FARM MENU 
+        Features:
+        - Mailbox Farm
+        - LumberJack Farm
+        - Garbage Farm
+    ]]
+
+    local player = game.Players.LocalPlayer
+    if not player or not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
+        game:GetService("ReplicatedStorage"):WaitForChild("whitney"):FireServer()
+        task.wait(2)
+        game:GetService("ReplicatedStorage"):WaitForChild("whitney"):FireServer()
+        task.wait(4)
+        game:GetService("ReplicatedStorage"):WaitForChild("whitney"):FireServer()
+    end
+    print("Mobile UI Loaded")
+
+
+    local Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/UILIBMobile'))()
+    local ThemeManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/ThemeManagerMobile'))()
+    local SaveManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/SaveManagerMobile'))()
+    local Window = Library:CreateWindow({
+        Title = 'Proximity Hub [V.2.0.0] | Philly Streets 2 | ' .. (identifyexecutor and identifyexecutor() or "Unknown"),
+        Center = true,
+        AutoShow = true,
+        Resizable = true,
+        ShowCustomCursor = false,
+        NotifySide = "Left",
+    })
+
+    local Tabs = {
+        ShopS = Window:AddTab("Shops"),
+        GunMods = Window:AddTab("GunMods"),
+        Features = Window:AddTab("Features"),
+        Farms = Window:AddTab('Farm'),
+        Combats = Window:AddTab('Combats'),
+        Visuals = Window:AddTab("Visuals"),
+        
+        
+        
+        ['Settings'] = Window:AddTab('Settings'),
+
+    }
+
+
+    local Shopping = Tabs.ShopS:AddLeftGroupbox("Quick Shops")
+
+    local Gun = Tabs.GunMods:AddLeftGroupbox("Gun Mods")
+    local Teleports = Tabs.GunMods:AddRightGroupbox("Teleports")
+
+
+    local Playerr = Tabs.Features:AddRightGroupbox("Player")
+    local Feature = Tabs.Features:AddLeftGroupbox("Features")
+
+    local Farm = Tabs.Farms:AddLeftGroupbox("Farms")
+
+
+    local Combat = Tabs.Combats:AddLeftGroupbox("Combat")
+
+
+
+    local ESPSettings = Tabs.Visuals:AddLeftGroupbox("ESP Settings")
+    local ESPBoxes = Tabs.Visuals:AddLeftGroupbox("ESP Boxes")
+    local ESPTracers = Tabs.Visuals:AddRightGroupbox("ESP Tracers")
+    local ESPNames = Tabs.Visuals:AddLeftGroupbox("ESP Names")
+    local ESPHealthBars = Tabs.Visuals:AddRightGroupbox("ESP Health")
+    local ESPDistance = Tabs.Visuals:AddLeftGroupbox("ESP Distance")
+    local VisualsTab = Tabs.Visuals:AddRightGroupbox("Ambient Surroundings")
+
+
+    local MenuGroupRight = Tabs['Settings']:AddRightGroupbox('Server')
+    local MenuGroup = Tabs['Settings']:AddRightGroupbox('Menu')
+
+    local Players = game:GetService("Players")
+    local LocalPlayer = Players.LocalPlayer
+    local RunService = game:GetService("RunService")
+    local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+    local MainGUI = PlayerGui:WaitForChild("MainGUI")
+    local guapoFrame = MainGUI:WaitForChild("guapoFrame")
+    local stockFrame = guapoFrame:WaitForChild("stockFrame")
+    local Content = stockFrame:WaitForChild("Content")
+    local productFrame = guapoFrame:WaitForChild("productFrame")
+    local contentFrame = productFrame:WaitForChild("contentFrame")
+    local purchaseButton = contentFrame:WaitForChild("purchaseButton")
+
+
+
+
+    Shopping:AddButton("Guapo Shop", function()
+        local args = {
+            "lilGuapo",
+            true
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("convoFunction"):FireServer(unpack(args))
+    end)
+    Shopping:AddButton("Gas Station Shop", function()
+        local args = {
+            "gasStation",
+            true
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("convoFunction"):FireServer(unpack(args))
+    end)
+
+
+
+
+
+
+
+
+
+
+
+
+    local function btp(pos)
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local root = LocalPlayer.Character.HumanoidRootPart
+            local humanoid = LocalPlayer.Character:FindFirstChildWhichIsA("Humanoid")
+            local lookVector = Vector3.new(0, 0, 1)
+            local cframe = CFrame.new(pos, pos + lookVector)
+            root.CFrame = cframe
+            if humanoid then
+                humanoid.Sit = true
+                task.wait(0.4)
+                humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+            end
+            task.wait(0.2)
+        end
+    end
+
+
+
+
+
+    local function getAllGuns()
+        local guns = {}
+        local function scan(container)
+            for _, tool in ipairs(container:GetChildren()) do
+                if tool:IsA("Tool") and tool:FindFirstChild("Settings") then
+                    table.insert(guns, tool)
+                end
+            end
+        end
+        scan(LocalPlayer.Backpack)
+        if LocalPlayer.Character then
+            scan(LocalPlayer.Character)
+        end
+        return guns
+    end
+
+    local function applyGunMods(gun, mods)
+        local settings = gun:FindFirstChild("Settings")
+        if not settings or not settings:IsA("ModuleScript") then return end
+        local gunData = require(settings)
+        if type(gunData) ~= "table" then return end
+
+
+        if mods.infDamage then
+            if gunData.headDamage then gunData.headDamage = math.huge end
+            if gunData.torsoDamage then gunData.torsoDamage = math.huge end
+            if gunData.armDamage then gunData.armDamage = math.huge end
+            if gunData.legDamage then gunData.legDamage = math.huge end
+            if gunData.handDamage then gunData.handDamage = math.huge end
+            if gunData.footDamage then gunData.footDamage = math.huge end
+            if gunData.vestDamage then gunData.vestDamage = math.huge end
+            if gunData.hatDamage then gunData.hatDamage = math.huge end
+        end
+        if mods.fastReload then
+            if gunData.reloadAnimation then gunData.reloadAnimation = 0 end
+            if gunData.reloadSound then gunData.reloadSound = 0 end
+        end
+        if mods.antiJam then
+            if gunData.jamChance then gunData.jamChance = 0 end
+            if gunData.jamIncrease then gunData.jamIncrease = 0 end
+        end
+        if mods.autoActivate then
+            if gunData.fireMode then gunData.fireMode = "auto" end
+            if gunData.autoCooldown then gunData.autoCooldown = 0.01 end
+        end
+        if mods.noRecoil then
+            if gunData.recoil then gunData.recoil = 0 end
+            if gunData.spread then gunData.spread = 0 end
+        end
+        if mods.fastEquip then
+            if gunData.equipAnimation then gunData.equipAnimation = 0 end
+            if gunData.unequipAnimation then gunData.unequipAnimation = 0 end
+            if gunData.sprintAnimation then gunData.sprintAnimation = 0 end
+            if gunData.raiseAnimation then gunData.raiseAnimation = 0 end
+            if gunData.pointAnimation then gunData.pointAnimation = 0 end
+        end
+        if mods.fastShoot then
+            if gunData.semiCooldown then gunData.semiCooldown = 0 end
+            if gunData.autoCooldown then gunData.autoCooldown = 0 end
+        end
+    end
+
+    Gun:AddLabel("Apply to all guns in inventory/equipped:")
+
+    local modState = {
+        infDamage = false,
+        fastReload = false,
+        antiJam = false,
+        autoActivate = false,
+        noRecoil = false,
+        fastEquip = false,
+        fastShoot = false,
+    }
+
+    local function applyAllMods()
+        for _, gun in ipairs(getAllGuns()) do
+            applyGunMods(gun, modState)
+        end
+    end
+
+    Gun:AddButton("Infinite Damage", function()
+        modState.infDamage = true
+        applyAllMods()
+        Library:Notify("Infinite Damage applied to all guns!", 2)
+    end)
+
+
+    Gun:AddButton("Fast Reload", function()
+        modState.fastReload = true
+        applyAllMods()
+        Library:Notify("Fast Reload applied to all guns!", 2)
+    end)
+    Gun:AddButton("Anti Jam", function()
+        modState.antiJam = true
+        applyAllMods()
+        Library:Notify("Anti Jam applied to all guns!", 2)
+    end)
+    Gun:AddButton("Auto Activate", function()
+        modState.autoActivate = true
+        applyAllMods()
+        Library:Notify("Auto Activate applied to all guns!", 2)
+    end)
+    Gun:AddButton("No Recoil", function()
+        modState.noRecoil = true
+        applyAllMods()
+        Library:Notify("No Recoil applied to all guns!", 2)
+    end)
+    Gun:AddButton("Fast Equip", function()
+        modState.fastEquip = true
+        applyAllMods()
+        Library:Notify("Fast Equip applied to all guns!", 2)
+    end)
+    Gun:AddButton("Fast Shoot/No FireRate", function()
+        modState.fastShoot = true
+        applyAllMods()
+        Library:Notify("Fast Shoot/No FireRate applied to all guns!", 2)
+    end)
+    Gun:AddDivider()
+    Gun:AddButton("Apply All Mods Now", function()
+        applyAllMods()
+        Library:Notify("All mods applied to all guns!", 2)
+    end)
+
+    Gun:AddButton("Refresh Gun List & Reapply", function()
+        applyAllMods()
+        Library:Notify("Refreshed and reapplied mods!", 2)
+    end)
+
+
+
+    local teleportLocations = {
+        ["Mail Job"] = Vector3.new(-35, 317, -384),
+        ["Clinic"] = Vector3.new(-479, 317, -408),
+        ["Studio Outside"] = Vector3.new(-1091, 317, -502),
+        ["Studio Inside"] = Vector3.new(2703, 288, 837),
+        ["Ice Blox"] = Vector3.new(-1281, 317, 519),
+        ["Chop Shop (Car)"] = Vector3.new(-908, 317, 517),
+        ["Barber Shop Outside 1"] = Vector3.new(-157, 321, 749),
+        ["Barber Shop Outside 2"] = Vector3.new(2459, 285, 223),
+        ["Gun Shop (FREEDOM TACTICAL)"] = Vector3.new(195, 318, 945),
+        ["Lavanderia Laundromat (Outside)"] = Vector3.new(-1, 317, 934),
+        ["Lavanderia Laundromat (Inside)"] = Vector3.new(2450, 286, -1332),
+        ["Sell Stolen Loot Location"] = Vector3.new(48, 317, 791),
+        ["Black Market 1"] = Vector3.new(316, 317, 1093),
+        ["Black Market 2"] = Vector3.new(850, 320, -491),
+        ["Guapo"] = Vector3.new(171, 317, -164),
+        ["Gas Station"] = Vector3.new(288, 317, 299),
+        ["Car Dealership"] = Vector3.new(646, 317, 347),
+        ["Shirts/Shoes"] = Vector3.new(887, 318, -311),
+        ["Sell Repz"] = Vector3.new(2486, 284, -369),
+        ["Laptops/Phones"] = Vector3.new(693, 317, -76),
+        ["Biteway Inside"] = Vector3.new(2510, 275, -1162),
+        ["Biteway Outside"] = Vector3.new(714, 317, -133),
+        ["Autoshop"] = Vector3.new(1035, 317, 819),
+        ["Beauty Studio"] = Vector3.new(802, 317, 958),
+        ["Garbage Job"] = Vector3.new(288, 317, 797),
+        ["Lumber Jack Job"] = Vector3.new(742, 317, 847),
+        ["Reps Machine"] = Vector3.new(-135, 317, 162),
+    }
+
+    local teleportNames = {}
+    for name, _ in pairs(teleportLocations) do
+        table.insert(teleportNames, name)
+    end
+    table.sort(teleportNames)
+
+    local selectedTeleport = teleportNames[1]
+
+    Teleports:AddDropdown("TeleportDropdown", {
+        Text = "Teleport Locations",
+        Values = teleportNames,
+        Default = selectedTeleport,
+        Callback = function(value)
+            selectedTeleport = value
+        end
+    })
+
+    Teleports:AddButton("Teleport", function()
+        local pos = teleportLocations[selectedTeleport]
+        if pos then
+            btp(pos)
+            Library:Notify("Teleported to " .. selectedTeleport, 2)
+        else
+            Library:Notify("Invalid teleport location!", 2)
+        end
+    end)
+
+
+
+
+
+
+
+
+
+    Playerr:AddSlider("FlySpeedSlider", {
+        Text = "Fly Speed",
+        Min = 1,
+        Max = 500,
+        Default = 50,
+        Rounding = 1,
+        Callback = function(value)
+            flySpeed = value
+        end
+    })
+    local speedvalue = 1
+
+    Playerr:AddSlider('SpeedValue', {
+        Text = 'Change Walkspeed',
+        Default = 1,
+        Min = 1,
+        Max = 10,
+        Rounding = 1,
+        Callback = function(value)
+            speedvalue = value
+            getgenv().speedvalue = value
+        end
+    })
+
+
+
+    local SpeedEnabled = false
+    local SpeedConnection
+
+    local function getCharacter()
+        return LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    end
+
+    local function DisconnectSpeed()
+        if SpeedConnection then
+            SpeedConnection:Disconnect()
+            SpeedConnection = nil
+        end
+    end
+
+    local function SpeedControl()
+        DisconnectSpeed()
+        SpeedConnection = RunService.RenderStepped:Connect(function()
+            if not SpeedEnabled then
+                DisconnectSpeed()
+                return
+            end
+            local character = getCharacter()
+            local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+            local hrp = character and character:FindFirstChild("HumanoidRootPart")
+            local currentSpeed = speedvalue or getgenv().speedvalue or 1
+            if humanoid and hrp then
+                local MoveDirection = humanoid.MoveDirection
+                if MoveDirection.Magnitude > 0 then
+                    hrp.CFrame = hrp.CFrame + MoveDirection * (currentSpeed * 1)
+                end
+            end
+        end)
+    end
+
+    Playerr:AddToggle("FlyNewMethod", {
+        Text = "Fly",
+        Default = false,
+        Callback = function(state)
+            FLYING = state
+            local camera = workspace.CurrentCamera
+            local LocalPlayer = Players.LocalPlayer
+            if state then
+                local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+                if not character then return end
+
+                local humanoid = character:FindFirstChild("Humanoid")
+                if not humanoid then return end
+
+
+                humanoid.PlatformStand = true
+                local Head = character:WaitForChild("Head")
+                Head.Anchored = true
+
+                if CFloop then CFloop:Disconnect() end
+                CFloop = RunService.Heartbeat:Connect(function(deltaTime)
+                    local moveDirection = humanoid.MoveDirection * (flySpeed * deltaTime)
+                    local headCFrame = Head.CFrame
+                    local cameraCFrame = camera.CFrame
+                    local cameraOffset = headCFrame:ToObjectSpace(cameraCFrame).Position
+                    cameraCFrame = cameraCFrame * CFrame.new(-cameraOffset.X, -cameraOffset.Y, -cameraOffset.Z + 1)
+                    local cameraPosition = cameraCFrame.Position
+                    local headPosition = headCFrame.Position
+
+                    local objectSpaceVelocity = CFrame.new(cameraPosition, Vector3.new(headPosition.X, cameraPosition.Y, headPosition.Z)):VectorToObjectSpace(moveDirection)
+                    Head.CFrame = CFrame.new(headPosition) * (cameraCFrame - cameraPosition) * CFrame.new(objectSpaceVelocity)
+                end)
+            else
+                if CFloop then
+                    CFloop:Disconnect()
+                    local character = LocalPlayer.Character
+                    local humanoid = character and character:FindFirstChildOfClass('Humanoid')
+                    if humanoid then
+                        humanoid.PlatformStand = false
+                    end
+                    local Head = character and character:WaitForChild("Head")
+                    if Head then
+                        Head.Anchored = false
+                    end
+                    if humanoid then
+                        humanoid.Sit = true
+                    end
+                    task.wait(0.2)
+                    if humanoid then
+                        humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                    end
+                    getgenv().SwimMethod = false
+                    if humanoid then
+                        humanoid:ChangeState(Enum.HumanoidStateType.Running)
+                    end
+                end
+            end
+        end
+    }):AddKeyPicker('FlyNewMethod', {
+        Default = '',
+        SyncToggleState = true,
+        Mode = 'Toggle',
+        Text = 'Fly',
+        NoUI = false
+    })
+    Playerr:AddToggle('Speedhack', {
+        Text = 'Walkspeed',
+        Default = false,
+        Callback = function(enabled)
+            SpeedEnabled = enabled
+            if enabled then
+                SpeedControl()
+            else
+                DisconnectSpeed()
+            end
+        end
+    }):AddKeyPicker('WalkspeedKey', {
+        Default = '',
+        SyncToggleState = true,
+        Mode = 'Toggle',
+        Text = 'Toggle Walkspeed',
+        NoUI = false
+    })
+
+
+    Playerr:AddToggle("NoclipToggle", {
+        Text = "Noclip",
+        Default = false,
+        Tooltip = "Toggle Noclip",
+        Callback = function(Value)
+            getgenv().NoclipEnabled = Value
+            
+            if Value then
+                local character = game.Players.LocalPlayer.Character
+                if character then
+                    for _, part in pairs(character:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = false
+                        end
+                    end
+                end
+                
+                game.Players.LocalPlayer.CharacterAdded:Connect(function(char)
+                    if getgenv().NoclipEnabled then
+                        for _, part in pairs(char:GetDescendants()) do
+                            if part:IsA("BasePart") then
+                                part.CanCollide = false
+                            end
+                        end
+                    end
+                end)
+            else
+                local character = game.Players.LocalPlayer.Character
+                if character then
+                    for _, part in pairs(character:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = true
+                        end
+                    end
+                end
+            end
+        end
+    }):AddKeyPicker('Noclip', {
+        Default = '',
+        SyncToggleState = true,
+        Mode = 'Toggle',
+        Text = 'Noclip',
+        NoUI = false
+    })
+
+
+    Feature:AddToggle('InfJumpToggle', {
+        Text = 'Infinite Jump',
+        Default = false,
+        Tooltip = 'Toggle Infinite Jump',
+        Callback = function(Value)
+            if infJump then
+                infJump:Disconnect()
+                infJump = nil
+            end
+            infJumpDebounce = false
+            if Value then
+                infJump = UserInputService.JumpRequest:Connect(function()
+                    if not infJumpDebounce then
+                        infJumpDebounce = true
+                        local character = game.Players.LocalPlayer.Character
+                        if character then
+                            local humanoid = character:FindFirstChildWhichIsA("Humanoid")
+                            if humanoid then
+                                humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                            end
+                        end
+                        wait()
+                        infJumpDebounce = false
+                    end
+                end)
+            end
+        end
+    })
+    local originalJumpPower = nil
+
+    local player = game.Players.LocalPlayer
+    local noJumpCooldownConn
+
+    local running = false
+    local loopThread = nil
+
+    Feature:AddToggle('NoJumpCooldownToggle', {
+        Text = 'No Jump Cooldown',
+        Default = false,
+        Callback = function(Value)
+            getgenv().NoJumpCooldownEnabled = Value
+
+            if noJumpCooldownConn then
+                noJumpCooldownConn:Disconnect()
+                noJumpCooldownConn = nil
+            end
+
+            local function setJumpPowerAndBind(char)
+                local humanoid = char:FindFirstChildWhichIsA("Humanoid")
+                if humanoid then
+                    if Value then
+                        if not originalJumpPower then
+                            originalJumpPower = humanoid.JumpPower
+                        end
+                        humanoid.JumpPower = 50
+
+                        noJumpCooldownConn = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+                            if not getgenv().NoJumpCooldownEnabled then return end
+                            if gameProcessed then return end
+                            if input.KeyCode == Enum.KeyCode.Space then
+                                if humanoid and humanoid:GetState() ~= Enum.HumanoidStateType.Jumping and humanoid:GetState() ~= Enum.HumanoidStateType.Freefall then
+                                    humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                                    humanoid.Jump = true
+                                end
+                            end
+                        end)
+                    else
+                        if originalJumpPower then
+                            humanoid.JumpPower = originalJumpPower
+                            originalJumpPower = nil
+                        end
+                    end
+                end
+            end
+
+            if player and player.Character then
+                setJumpPowerAndBind(player.Character)
+            end
+
+            if not _G.noJumpCooldownCharConn then
+                _G.noJumpCooldownCharConn = player.CharacterAdded:Connect(function(char)
+                    if noJumpCooldownConn then
+                        noJumpCooldownConn:Disconnect()
+                        noJumpCooldownConn = nil
+                    end
+                    local hum = char:WaitForChild("Humanoid", 5)
+                    if hum then
+                        setJumpPowerAndBind(char)
+                    end
+                end)
+            end
+
+            running = Value
+            if loopThread then
+                loopThread = nil
+            end
+            if Value then
+                loopThread = task.spawn(function()
+                    while running do
+                        local char = player and player.Character
+                        if char then
+                            local humanoid = char:FindFirstChildWhichIsA("Humanoid")
+                            if humanoid then
+                                humanoid.JumpPower = 50
+                            end
+                        end
+                        task.wait(0.1)
+                    end
+                end)
+            end
+        end
+    })
+    Feature:AddToggle('InstantInteraction', {
+        Text = 'Instant Interaction', 
+        Default = false,
+        Callback = function(Value)
+            local Workspace = game:GetService("Workspace")
+            
+            for _, v in ipairs(Workspace:GetDescendants()) do
+                if v.ClassName == "ProximityPrompt" then
+                    v.HoldDuration = Value and 0 or v.HoldDuration
+                end
+            end
+
+            local connection
+            if Value then
+                connection = Workspace.DescendantAdded:Connect(function(descendant)
+                    if descendant.ClassName == "ProximityPrompt" then
+                        descendant.HoldDuration = 0
+                    end
+                end)
+            else
+                if connection then
+                    connection:Disconnect()
+                end
+            end
+        end
+    })
+
+    local instantRespawnLoop
+
+    Feature:AddToggle('InstantRespawn', {
+        Text = 'Instant Respawn',
+        Default = true,
+        Callback = function(Value)
+            local Players = game:GetService("Players")
+            if Value then
+                instantRespawnLoop = true
+                task.spawn(function()
+                    while instantRespawnLoop do
+                        Players.RespawnTime = 1
+                        task.wait(0.2)
+                    end
+                end)
+            else
+                instantRespawnLoop = false
+                Players.RespawnTime = 30
+            end
+        end
+    })
+
+    local infiniteStaminaLoop
+
+    Feature:AddToggle('InfiniteStamina', {
+        Text = 'Infinite Stamina',
+        Default = false,
+        Callback = function(Value)
+            if Value then
+                infiniteStaminaLoop = true
+                task.spawn(function()
+                    while infiniteStaminaLoop do
+                        local args = { false }
+                        local plr = game:GetService("Players").LocalPlayer
+                        local events = plr:FindFirstChild("Events")
+                        if events then
+                            local energy = events:FindFirstChild("Energy")
+                            if energy then
+                                energy:FireServer(unpack(args))
+                            end
+                        end
+                        task.wait(0.2)
+                    end
+                end)
+            else
+                infiniteStaminaLoop = false
+                local args = { false }
+                local plr = game:GetService("Players").LocalPlayer
+                local events = plr:FindFirstChild("Events")
+                if events then
+                    local energy = events:FindFirstChild("Energy")
+                    if energy then
+                        energy:FireServer(unpack(args))
+                    end
+                end
+            end
+        end
+    })
+
+    Feature:AddButton("INSTANT RESPAWN", function()
+        game:GetService("ReplicatedStorage"):WaitForChild("whitney"):FireServer()
+    end)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    local plr = game.Players.LocalPlayer
+
+    local mailboxPositions = {
+        B1 = Vector3.new(-245, 317, -79),
+        B2 = Vector3.new(-222, 317, -392),
+        B3 = Vector3.new(350, 317, -391),
+        B4 = Vector3.new(564, 317, -173),
+        A1 = Vector3.new(-73, 317, 214),
+        A2 = Vector3.new(-163, 317, 62),
+        A3 = Vector3.new(-73, 317, 214),
+        A4 = Vector3.new(80, 317, 439),
+        A5 = Vector3.new(-104, 317, 563),
+        A6 = Vector3.new(-362, 317, 543),
+    }
+
+    local function tpToPosition(pos, frontPos)
+        local chr = plr.Character or plr.CharacterAdded:Wait()
+        local root = chr:WaitForChild("HumanoidRootPart")
+        if frontPos then
+            root.CFrame = CFrame.new(pos, frontPos)
+        else
+            root.CFrame = CFrame.new(pos)
+        end
+    end
+
+    local function tpAndFacePosition(pos, frontPos)
+        local chr = plr.Character or plr.CharacterAdded:Wait()
+        local root = chr:WaitForChild("HumanoidRootPart")
+        local rightOffset = Vector3.new(0.4, 0, 0) 
+        local forwardOffset = Vector3.new(0, 0, -0.2) 
+        local upOffset = Vector3.new(0, 0.5, 0) 
+        local targetPos = pos + rightOffset + forwardOffset + upOffset
+        local lookAt = frontPos or (pos + Vector3.new(0, 0, -2))
+        local newCF = CFrame.new(targetPos, lookAt)
+        root.CFrame = newCF
+    end
+
+    local function equipTool(tool)
+        local chr = plr.Character or plr.CharacterAdded:Wait()
+        local humanoid = chr:FindFirstChildOfClass("Humanoid")
+        if humanoid and tool then
+            humanoid:EquipTool(tool)
+        end
+    end
+
+    local function getDelivery()
+        for _,v in pairs(plr.Backpack:GetChildren()) do
+            if v:IsA("Tool") and v.Name:match("Delivery %((%w%d)%)") then
+                return v
+            end
+        end
+        return nil
+    end
+
+    local function getEquippedDelivery()
+        local chr = plr.Character
+        if not chr then return nil end
+        for _,v in pairs(chr:GetChildren()) do
+            if v:IsA("Tool") and v.Name:match("Delivery %((%w%d)%)") then
+                return v
+            end
+        end
+        return nil
+    end
+
+    local function setMailboxHoldDurationZero()
+        local mailboxInteraction = workspace:FindFirstChild("Interactions")
+            and workspace.Interactions:FindFirstChild("toolInteractions")
+            and workspace.Interactions.toolInteractions:FindFirstChild("MailboxPart")
+            and workspace.Interactions.toolInteractions.MailboxPart:FindFirstChild("Interaction")
+        if mailboxInteraction and mailboxInteraction:IsA("ProximityPrompt") then
+            mailboxInteraction.HoldDuration = 0
+        end
+    end
+
+    local function holdEForPrompt(prompt)
+        if not prompt or not prompt:IsA("ProximityPrompt") then return end
+        local UserInputService = game:GetService("UserInputService")
+        local VirtualInputManager = game:GetService("VirtualInputManager")
+        local keyCode = Enum.KeyCode.E
+        if VirtualInputManager then
+            VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
+            task.wait(prompt.HoldDuration or 1)
+            VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
+        else
+            UserInputService.InputBegan:Fire({KeyCode = keyCode, UserInputType = Enum.UserInputType.Keyboard})
+            task.wait(prompt.HoldDuration or 1)
+            UserInputService.InputEnded:Fire({KeyCode = keyCode, UserInputType = Enum.UserInputType.Keyboard})
+        end
+    end
+
+    function mailboxAutofarm()
+        local jobPos = Vector3.new(1801, 289, -2835)
+        btp(jobPos)
+        task.wait(0.3)    local prompt = nil
+        for _,desc in ipairs(workspace:GetDescendants()) do
+            if desc:IsA("ProximityPrompt") and desc.Parent and desc.Parent:IsA("BasePart") then
+                local part = desc.Parent
+                if (part.Position - jobPos).Magnitude < 10 then
+                    prompt = desc
+                    break
+                end
+            end
+        end
+        if prompt then
+            holdEForPrompt(prompt)
+            task.wait(0.5)
+        end
+
+        local delivery = getDelivery()
+        if delivery then
+            equipTool(delivery)
+            for i=1,10 do
+                if getEquippedDelivery() then break end
+                task.wait(0.05)
+            end
+            local mailbox = delivery.Name:match("%((%w%d)%)")
+            if mailbox then
+                local pos = mailboxPositions[mailbox]
+                if pos then
+                    local mailboxPart = workspace:FindFirstChild("MailboxPart")
+                    if mailboxPart and mailboxPart:IsA("BasePart") then
+                        btp(Vector3.new(1802, 289, -2835), mailboxPart.Position)
+                    else
+                        btp(Vector3.new(1802, 289, -2835))
+                    end
+                    task.wait(1)
+                    btp(pos)
+                    task.wait(0.3)
+                    setMailboxHoldDurationZero()
+                    for i=1,20 do
+                        if not getEquippedDelivery() and not getDelivery() then break end
+                        task.wait(0.05)
+                    end
+                end
+            end
+        end
+    end
+
+    Farm:AddToggle('MailboxAutofarm', {
+        Text = 'Mailbox Autofarm',
+        Default = false,
+        Callback = function(state)
+            autofarmEnabled = state
+            if autofarmEnabled then
+                mailboxAutofarm()
+            end
+        end
+    })
+
+
+
+    local woodAutofarmEnabled = false
+
+    local axePosition = Vector3.new(661, 317, 837)
+    local logPosition = Vector3.new(751, 317, 846)
+    local fullcutlogPositions = {
+        Vector3.new(694, 317, 843),
+        Vector3.new(679, 317, 843),
+        Vector3.new(663, 317, 828),
+        Vector3.new(663, 317, 815)
+    }
+    local halfcutlogPositions = {
+        Vector3.new(733, 317, 844),
+        Vector3.new(719, 317, 843),
+        Vector3.new(718, 317, 814),
+        Vector3.new(703, 317, 814)
+    }
+    local vanPosition = Vector3.new(755, 317, 840)
+
+    local promptsSet = false
+
+    local function setAllInteractionPromptDurationsToZero()
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("ProximityPrompt") and obj.Name == "Interaction" then
+                if obj.HoldDuration ~= 0 then
+                    obj.HoldDuration = 0
+                end
+            end
+        end
+    end
+
+    local function setSpecificPromptDurations()
+        local sellPrompt = workspace:FindFirstChild("Interactions")
+            and workspace.Interactions:FindFirstChild("sellInteractions")
+            and workspace.Interactions.sellInteractions:FindFirstChild("woodPart")
+            and workspace.Interactions.sellInteractions.woodPart:FindFirstChild("Interaction")
+        if sellPrompt and sellPrompt:IsA("ProximityPrompt") then
+            sellPrompt.HoldDuration = 0
+        end
+
+        local toolInteractions = workspace:FindFirstChild("Interactions")
+            and workspace.Interactions:FindFirstChild("toolInteractions")
+        if toolInteractions then
+            local children = toolInteractions:GetChildren()
+            local logObj = children[79]
+            if logObj and logObj:FindFirstChild("WoodPart") and logObj.WoodPart:FindFirstChild("Interaction") then
+                local prompt = logObj.WoodPart.Interaction
+                if prompt:IsA("ProximityPrompt") then
+                    prompt.HoldDuration = 0
+                end
+            end
+        end
+
+        local wsChildren = workspace:GetChildren()
+        local fullLogObj = wsChildren[1227]
+        if fullLogObj and fullLogObj:FindFirstChild("Hitbox") and fullLogObj.Hitbox:FindFirstChild("Interaction") then
+            local prompt = fullLogObj.Hitbox.Interaction
+            if prompt:IsA("ProximityPrompt") then
+                prompt.HoldDuration = 0
+            end
+        end
+
+        local halfCutObj = wsChildren[1456]
+        if halfCutObj and halfCutObj:FindFirstChild("Hitbox") and halfCutObj.Hitbox:FindFirstChild("Interaction") then
+            local prompt = halfCutObj.Hitbox.Interaction
+            if prompt:IsA("ProximityPrompt") then
+                prompt.HoldDuration = 0
+            end
+        end
+    end
+
+    if not promptsSet then
+        setAllInteractionPromptDurationsToZero()
+        setSpecificPromptDurations()
+        promptsSet = true
+    end
+
+    local function hasItemInInventory(itemName)
+        for _, item in ipairs(LocalPlayer.Backpack:GetChildren()) do
+            if item.Name == itemName then
+                return true
+            end
+        end
+        if LocalPlayer.Character then
+            for _, item in ipairs(LocalPlayer.Character:GetChildren()) do
+                if item.Name == itemName then
+                    return true
+                end
+            end
+        end
+        return false
+    end
+
+    local function getItemFromInventory(itemName)
+        if LocalPlayer.Backpack:FindFirstChild(itemName) then
+            return LocalPlayer.Backpack[itemName]
+        end
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild(itemName) then
+            return LocalPlayer.Character[itemName]
+        end
+        return nil
+    end
+
+    local function equipItem(itemName)
+        local item = getItemFromInventory(itemName)
+        if item then
+            LocalPlayer.Character.Humanoid:EquipTool(item)
+            for i = 1, 10 do
+                if LocalPlayer.Character:FindFirstChild(itemName) then break end
+                task.wait(0.05)
+            end
+        end
+    end
+
+    local function pressE(duration)
+        local VirtualInputManager = game:GetService("VirtualInputManager")
+        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+        task.wait(duration)
+        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+    end
+
+    local function clickMouse1(duration)
+        local VirtualInputManager = game:GetService("VirtualInputManager")
+        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+        task.wait(duration)
+        VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+    end
+
+    local function tpAndFaceFront(pos)
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local root = LocalPlayer.Character.HumanoidRootPart
+            local lookVector = Vector3.new(0, 0, 1)
+            local cframe = CFrame.new(pos, pos + lookVector)
+            root.CFrame = cframe
+            task.wait(0.2)
+            
+        end
+    end
+
+    local function setAllPromptDurationsToZero()
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("ProximityPrompt") then
+                if obj.HoldDuration ~= 0 then
+                    obj.HoldDuration = 0
+                end
+            end
+        end
+    end
+
+    local function woodAutofarm()
+        while woodAutofarmEnabled do
+            task.wait(0.5)
+
+            while hasItemInInventory("Quarter-Cut Log") do
+                equipItem("Quarter-Cut Log")
+                tpAndFaceFront(vanPosition)
+                task.wait(0.5)
+                pressE(1)
+                task.wait(0.5)
+            end
+
+            if not hasItemInInventory("Lumber Jack Axe") then
+                btp(axePosition)
+                task.wait(0.5)
+                pressE(0.6)
+                task.wait(0.5)
+            end
+
+            if hasItemInInventory("Full Log") then
+                equipItem("Full Log")
+                local chopped = false
+                for _, pos in ipairs(fullcutlogPositions) do
+                    btp(pos)
+                    task.wait(0.5)
+                    pressE(0.6)
+                    task.wait(0.5)
+                    if not hasItemInInventory("Full Log") then
+                        equipItem("Lumber Jack Axe")
+                        clickMouse1(0.6)
+                        task.wait(1)
+                        pressE(1)
+                        chopped = true
+                        break
+                    end
+                end
+                if not chopped then
+                    task.wait(1)
+                end
+            end
+
+            if not hasItemInInventory("Full Log") and not hasItemInInventory("Half-Cut Log") then
+                tpAndFaceFront(logPosition)
+                task.wait(0.5)
+                pressE(0.6)
+                task.wait(0.5)
+            end
+
+            task.wait(1)
+
+            if hasItemInInventory("Half-Cut Log") then
+                equipItem("Half-Cut Log")
+                for _, pos in ipairs(halfcutlogPositions) do
+                    tpAndFaceFront(pos)
+                    task.wait(0.5)
+                    pressE(0.6)
+                    task.wait(0.5)
+                    equipItem("Lumber Jack Axe")
+                    clickMouse1(0.6)
+                    task.wait(1)
+                    pressE(1)
+                    break
+                end
+            end
+
+            while hasItemInInventory("Quarter-Cut Log") do
+                equipItem("Quarter-Cut Log")
+                tpAndFaceFront(vanPosition)
+                task.wait(0)
+                pressE(0)
+                task.wait(0)
+            end
+
+            task.wait(0.5)
+        end
+    end
+
+
+    Farm:AddToggle('WoodAutofarm', {
+        Text = 'Wood Autofarm',
+        Default = false,
+        Callback = function(state)
+            woodAutofarmEnabled = state
+            if woodAutofarmEnabled then
+                task.spawn(woodAutofarm)
+            end
+        end
+    })
+
+    local fastWoodAutofarmEnabled = false
+    local fastAxePosition = Vector3.new(661, 317, 837)
+    local fastLogPosition = Vector3.new(751, 317, 846)
+    local fastFullcutlogPositions = {
+        Vector3.new(694, 317, 843),
+        Vector3.new(679, 317, 843),
+        Vector3.new(663, 317, 828),
+        Vector3.new(663, 317, 815)
+    }
+    local fastHalfcutlogPositions = {
+        Vector3.new(733, 317, 844),
+        Vector3.new(719, 317, 843),
+        Vector3.new(718, 317, 814),
+        Vector3.new(703, 317, 814)
+    }
+    local fastVanPosition = Vector3.new(755, 317, 840)
+
+    local fastPromptsSet = false
+    local function fastSetAllInteractionPromptDurationsToZero()
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("ProximityPrompt") and obj.Name == "Interaction" then
+                if obj.HoldDuration ~= 0 then
+                    obj.HoldDuration = 0
+                end
+            end
+        end
+    end
+
+    local function fastSetSpecificPromptDurations()
+        local sellPrompt = workspace:FindFirstChild("Interactions") and workspace.Interactions:FindFirstChild("sellInteractions")
+            and workspace.Interactions.sellInteractions:FindFirstChild("woodPart")
+            and workspace.Interactions.sellInteractions.woodPart:FindFirstChild("Interaction")
+        if sellPrompt and sellPrompt:IsA("ProximityPrompt") then
+            sellPrompt.HoldDuration = 0
+        end
+
+        local toolInteractions = workspace:FindFirstChild("Interactions") and workspace.Interactions:FindFirstChild("toolInteractions")
+        if toolInteractions then
+            local children = toolInteractions:GetChildren()
+            local logObj = children[79]
+            if logObj and logObj:FindFirstChild("WoodPart") and logObj.WoodPart:FindFirstChild("Interaction") then
+                local prompt = logObj.WoodPart.Interaction
+                if prompt:IsA("ProximityPrompt") then
+                    prompt.HoldDuration = 0
+                end
+            end
+        end
+
+        local wsChildren = workspace:GetChildren()
+        local fullLogObj = wsChildren[1227]
+        if fullLogObj and fullLogObj:FindFirstChild("Hitbox") and fullLogObj.Hitbox:FindFirstChild("Interaction") then
+            local prompt = fullLogObj.Hitbox.Interaction
+            if prompt:IsA("ProximityPrompt") then
+                prompt.HoldDuration = 0
+            end
+        end
+
+        local halfCutObj = wsChildren[1456]
+        if halfCutObj and halfCutObj:FindFirstChild("Hitbox") and halfCutObj.Hitbox:FindFirstChild("Interaction") then
+            local prompt = halfCutObj.Hitbox.Interaction
+            if prompt:IsA("ProximityPrompt") then
+                prompt.HoldDuration = 0
+            end
+        end
+    end
+
+    if not fastPromptsSet then
+        fastSetAllInteractionPromptDurationsToZero()
+        fastSetSpecificPromptDurations()
+        fastPromptsSet = true
+    end
+
+    local function fastHasItemInInventory(itemName)
+        for _, item in ipairs(LocalPlayer.Backpack:GetChildren()) do
+            if item.Name == itemName then
+                return true
+            end
+        end
+        if LocalPlayer.Character then
+            for _, item in ipairs(LocalPlayer.Character:GetChildren()) do
+                if item.Name == itemName then
+                    return true
+                end
+            end
+        end
+        return false
+    end
+
+    local function fastGetItemFromInventory(itemName)
+        if LocalPlayer.Backpack:FindFirstChild(itemName) then
+            return LocalPlayer.Backpack[itemName]
+        end
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild(itemName) then
+            return LocalPlayer.Character[itemName]
+        end
+        return nil
+    end
+
+    local function fastEquipItem(itemName)
+        local item = fastGetItemFromInventory(itemName)
+        if item then
+            LocalPlayer.Character.Humanoid:EquipTool(item)
+            for i = 1, 10 do
+                if LocalPlayer.Character:FindFirstChild(itemName) then break end
+                task.wait(0.05)
+            end
+        end
+    end
+
+    local function fastPressE(duration)
+        local VirtualInputManager = game:GetService("VirtualInputManager")
+        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+        task.wait(duration)
+        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+    end
+
+
+    local function fastClickMouse1(duration)
+        local VirtualInputManager = game:GetService("VirtualInputManager")
+        local startTime = tick()
+        while tick() - startTime < (duration or 0.1) do
+            VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+            task.wait(0.05)
+            VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+            task.wait(0.05)
+        end
+    end
+        local axe = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Lumber Jack Axe")
+        if axe and axe:FindFirstChild("Event") then
+            local argsTrue = {
+                "Chopping",
+                true
+            }
+            local argsFalse = {
+                "Chopping",
+                false
+            }
+            local startTime = tick()
+            while tick() - startTime < (duration or 0.1) do
+                axe.Event:FireServer(unpack(argsTrue))
+                task.wait(0.05)
+                axe.Event:FireServer(unpack(argsFalse))
+                task.wait(0.05)
+            end
+        end
+
+
+    local function fastTpAndFaceFront(pos)
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local root = LocalPlayer.Character.HumanoidRootPart
+            local lookVector = Vector3.new(0, 0, 1)
+            local cframe = CFrame.new(pos, pos + lookVector)
+            root.CFrame = cframe
+            task.wait(0.2)
+        end
+    end
+
+    local function fastSetAllPromptDurationsToZero()
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("ProximityPrompt") then
+                if obj.HoldDuration ~= 0 then
+                    obj.HoldDuration = 0
+                end
+            end
+        end
+    end
+
+    local function fastWoodAutofarm()
+        while fastWoodAutofarmEnabled do
+            task.wait(0.5)
+
+            while fastHasItemInInventory("Quarter-Cut Log") do
+                fastEquipItem("Quarter-Cut Log")
+                fastTpAndFaceFront(fastVanPosition)
+                task.wait(0)
+                fastPressE(0)
+                task.wait(0)
+            end
+
+            if not fastHasItemInInventory("Lumber Jack Axe") then
+                btp(fastAxePosition)
+                task.wait(0)
+                fastPressE(0)
+                task.wait(0)
+            end
+
+            if fastHasItemInInventory("Full Log") then
+                fastEquipItem("Full Log")
+                local chopped = false
+                for i, pos in ipairs(fastFullcutlogPositions) do
+                    btp(pos)
+                    task.wait(0.5)
+                    fastPressE(0)
+                    task.wait(0.5)
+                    if not fastHasItemInInventory("Full Log") then
+                        fastEquipItem("Lumber Jack Axe")
+                        fastClickMouse1(0.6)
+                        task.wait(1)
+                        fastPressE(0)
+                        chopped = true
+                        break
+                    end
+                end
+                if not chopped then
+                    task.wait(1)
+                end
+            end
+
+            if not fastHasItemInInventory("Full Log") and not fastHasItemInInventory("Half-Cut Log") then
+                fastTpAndFaceFront(fastLogPosition)
+                task.wait(0.2)
+                fastPressE(0)
+                task.wait(0.2)
+            end
+
+            task.wait(1)
+
+            if fastHasItemInInventory("Half-Cut Log") then
+                fastEquipItem("Half-Cut Log")
+                for i, pos in ipairs(fastHalfcutlogPositions) do
+                    fastTpAndFaceFront(pos)
+                    task.wait(0.5)
+                    fastPressE(0)
+                    task.wait(0.5)
+                    fastEquipItem("Lumber Jack Axe")
+                    fastClickMouse1(0.6)
+                    task.wait(1)
+                    fastPressE(0)
+                    break
+                end
+            end
+
+            while fastHasItemInInventory("Quarter-Cut Log") do
+                fastEquipItem("Quarter-Cut Log")
+                fastTpAndFaceFront(fastVanPosition)
+                task.wait(0)
+                fastPressE(0)
+                task.wait(0)
+            end
+
+            task.wait(0.5)
+        end
+    end
+
+    Farm:AddToggle('FastWoodAutofarm', {
+        Text = 'Fast Wood Autofarm',
+        Default = false,
+        Callback = function(state)
+            fastWoodAutofarmEnabled = state
+            if fastWoodAutofarmEnabled then
+                task.spawn(fastWoodAutofarm)
+            end
+        end
+    })
+    Farm:AddDivider()
+
+    --[[local garbageAutofarmEnabled = false
+    local garbageAutofarmThread
+
+    local function tp(pos)
+        local plr = game.Players.LocalPlayer
+        local chr = plr.Character or plr.CharacterAdded:Wait()
+        local hrp = chr:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            local humanoid = chr:FindFirstChildOfClass("Humanoid")
+            if humanoid then
+                humanoid.Sit = true
+            end
+            hrp.CFrame = CFrame.new(pos)
+        end
+    end
+
+    local function pressE()
+        local VirtualInputManager = game:GetService("VirtualInputManager")
+        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+        task.wait(0.05)
+        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+    end
+
+    local function equipTrashBag()
+        local plr = game.Players.LocalPlayer
+        local chr = plr.Character or plr.CharacterAdded:Wait()
+        local backpack = plr:FindFirstChild("Backpack")
+        if backpack then
+            local trashBag = backpack:FindFirstChild("Trash Bag")
+            if trashBag and trashBag:IsA("Tool") and chr then
+                trashBag.Parent = chr
+                return true
+            end
+        end
+        return false
+    end
+
+    local function hasTrashBagEquipped()
+        local plr = game.Players.LocalPlayer
+        local chr = plr.Character or plr.CharacterAdded:Wait()
+        return chr:FindFirstChild("Trash Bag") ~= nil
+    end
+
+    local function garbageAutofarm()
+        local plr = game.Players.LocalPlayer
+        local pickupPos = Vector3.new(284, 317, 794)
+        local sellPos = Vector3.new(294, 317, 660)
+
+        while garbageAutofarmEnabled do
+            tp(pickupPos)
+            task.wait(0.05)
+            pressE() 
+            task.wait(0.05)
+
+            for i = 1, 10 do 
+                if equipTrashBag() then
+                    break
+                end
+                task.wait(0.02)
+            end
+
+            for i = 1, 5 do
+                if hasTrashBagEquipped() then break end
+                equipTrashBag()
+                task.wait(0.01)
+            end
+
+            task.wait(0.05)
+
+            tp(sellPos)
+            task.wait(0.08)
+            pressE() 
+            task.wait(0.05)
+        end
+    end
+
+    Farm:AddToggle('GarbageAutofarm', {
+        Text = 'Garbage Autofarm',
+        Default = false,
+        Callback = function(state)
+            garbageAutofarmEnabled = state
+            local plr = game.Players.LocalPlayer
+            local function jump()
+                local chr = plr.Character or plr.CharacterAdded:Wait()
+                local humanoid = chr:FindFirstChildOfClass("Humanoid")
+                if humanoid then
+                    humanoid.Jump = true
+                end
+            end
+            if garbageAutofarmEnabled then
+                if garbageAutofarmThread and coroutine.status(garbageAutofarmThread) ~= "dead" then
+                    return
+                end
+                garbageAutofarmThread = coroutine.create(garbageAutofarm)
+                coroutine.resume(garbageAutofarmThread)
+            else
+                jump()
+            end
+        end
+    })]]--
+    do
+        local repzStealerEnabled = false
+
+        local function pressE()
+            local VirtualInputManager = game:GetService("VirtualInputManager")
+            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+            task.wait(0.05)
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+        end
+
+        local function equipEmptyShoeBox()
+            local plr = game:GetService("Players").LocalPlayer
+            local backpack = plr and plr:FindFirstChild("Backpack")
+            if backpack and backpack:FindFirstChild("Empty Shoe Box") then
+                local tool = backpack["Empty Shoe Box"]
+                local char = plr.Character or plr.CharacterAdded:Wait()
+                if char and tool then
+                    tool.Parent = char
+                    return true
+                end
+            end
+            return false
+        end
+
+        local function stealAllRepzPrinters()
+            local plr = game:GetService("Players").LocalPlayer
+            local char = plr.Character or plr.CharacterAdded:Wait()
+            local root = char:FindFirstChild("HumanoidRootPart")
+            local prevPos = root and root.CFrame
+
+            local repzMachines = workspace:FindFirstChild("RepzMachines")
+            if repzMachines then
+                local children = repzMachines:GetChildren()
+                for i, machine in ipairs(children) do
+                    if not repzStealerEnabled then return end 
+                    local interact
+                    pcall(function()
+                        interact = machine.MachineBody.Interact.Interaction
+                    end)
+                    if interact then
+                        local pos = machine.MachineBody.Position
+                        if btp then
+                            btp(pos)
+                        elseif tp then
+                            tp(pos)
+                        else
+                            if root then
+                                root.CFrame = CFrame.new(pos)
+                            end
+                        end
+                        task.wait(0.01)
+                        equipEmptyShoeBox()
+                        pressE()
+                        task.wait(0.01)
+                        if prevPos then
+                            if btp then
+                                btp(prevPos.Position)
+                            elseif tp then
+                                tp(prevPos.Position)
+                            else
+                                if root then
+                                    root.CFrame = prevPos
+                                end
+                            end
+                        end
+                        task.wait(0.01)
+                    end
+                end
+            end
+        end
+
+        Farm:AddToggle('RepzPrinterStealer', {
+            Text = 'Repz Printer Stealer',
+            Default = false,
+            Callback = function(state)
+                repzStealerEnabled = state
+                if repzStealerEnabled then
+                    stealAllRepzPrinters()
+                end
+            end
+        })
+    end
+
+    Farm:AddButton('Infinite Money (High Dirty Money)', function()
+
+        local Workspace = game:GetService("Workspace")
+        for _, v in ipairs(Workspace:GetDescendants()) do
+            if v.ClassName == "ProximityPrompt" then
+                v.HoldDuration = 0
+            end
+        end
+        Workspace.DescendantAdded:Connect(function(descendant)
+            if descendant.ClassName == "ProximityPrompt" then
+                descendant.HoldDuration = 0
+            end
+        end)
+
+        local mainGui = plr:FindFirstChild("PlayerGui") and plr.PlayerGui:FindFirstChild("MainGUI")
+        if mainGui and mainGui:FindFirstChild("notificationFrame") then
+            mainGui.notificationFrame:Destroy()
+        end
+
+        local ScreenGui = Instance.new("ScreenGui")
+        ScreenGui.Name = "CustomNotificationGui"
+        ScreenGui.ResetOnSpawn = false
+        ScreenGui.IgnoreGuiInset = true
+        ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+
+        local parent = game:GetService("CoreGui")
+        local success, err = pcall(function() ScreenGui.Parent = parent end)
+        if not success then
+            warn("Failed to parent ScreenGui: " .. tostring(err))
+        end
+
+        local Frame = Instance.new("Frame")
+        Frame.Name = "NotificationFrame"
+        Frame.Size = UDim2.new(0, 350, 0, 80)
+        Frame.Position = UDim2.new(1, -370, 1, -100)
+        Frame.BackgroundColor3 = Color3.new(0,0,0)
+        Frame.BackgroundTransparency = 0.2
+        Frame.BorderSizePixel = 0
+        Frame.AnchorPoint = Vector2.new(0,1)
+        Frame.ZIndex = 1000
+        Frame.Parent = ScreenGui
+
+        local TextLabel = Instance.new("TextLabel")
+        TextLabel.Name = "NotificationText"
+        TextLabel.Size = UDim2.new(1, -20, 1, -20)
+        TextLabel.Position = UDim2.new(0, 10, 0, 10)
+        TextLabel.BackgroundTransparency = 1
+        TextLabel.Text = "Infinite Money Script Activated!\nPlease wait while the script runs."
+        TextLabel.TextColor3 = Color3.new(1,1,1)
+        TextLabel.TextStrokeTransparency = 0.5
+        TextLabel.TextScaled = true
+        TextLabel.Font = Enum.Font.GothamBold
+        TextLabel.ZIndex = 1001
+        TextLabel.Parent = Frame
+
+        task.spawn(function()
+            task.wait(4)
+            if ScreenGui then
+                ScreenGui:Destroy()
+            end
+        end)
+
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/selciawashere/PH/refs/heads/main/ACBPS",true))()
+        task.wait(5)
+        local player = game:GetService("Players").LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local hrp = character:FindFirstChild("HumanoidRootPart")
+        local originalPosition = hrp and hrp.Position
+
+        btp(Vector3.new(2481, 286, -1333))
+        Library:Notify("Wait For 15 seconds")
+        task.wait(15)
+        local prompt = workspace:FindFirstChild("WashingMachine")
+            and workspace.WashingMachine:FindFirstChild("Interaction")
+            and workspace.WashingMachine.Interaction:FindFirstChild("Prompt")
+
+        if prompt and prompt:IsA("ProximityPrompt") then
+            local success = false
+            if typeof(fireproximityprompt) == "function" then
+                for i = 1, 5000 do
+                    fireproximityprompt(prompt)
+                end
+                success = true
+            end
+
+            if not success and prompt.HoldDuration and prompt.ObjectText then
+                local originalHold = prompt.HoldDuration
+                prompt.HoldDuration = 0
+                prompt.Enabled = true
+                for i = 1, 5000 do
+                    pcall(function()
+                        prompt:InputHoldBegin()
+                        prompt:InputHoldEnd()
+                    end)
+                end
+                prompt.HoldDuration = originalHold
+                success = true
+            end
+
+            if not success then
+                warn("Could not trigger WashingMachine ProximityPrompt: fireproximityprompt not available and mobile fallback failed.")
+            end
+        else
+            warn("Could not find workspace.WashingMachine.Interaction.Prompt")
+        end
+
+    end)
+    Farm:AddButton("Infinite Money (Inside)", function()
+        local player = game:GetService("Players").LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait()
+        local hrp = character and character:FindFirstChild("HumanoidRootPart")
+        local foundPrompt = nil
+
+        local targetActionText = "wash money..."
+
+        if hrp then
+            for _, obj in ipairs(workspace:GetDescendants()) do
+                if obj:IsA("ProximityPrompt") and obj.ActionText == targetActionText then
+                    local parent = obj.Parent
+                    local part = parent and parent:IsA("BasePart") and parent or (parent and parent.Parent and parent.Parent:IsA("BasePart") and parent.Parent)
+                    if part and (part.Position - hrp.Position).Magnitude <= 7 then
+                        foundPrompt = obj
+                        break
+                    end
+                end
+            end
+        end
+
+        if foundPrompt then
+            print("Found ProximityPrompt with ActionText 'wash money...' near player:", foundPrompt)
+            local success = false
+            if typeof(fireproximityprompt) == "function" then
+                for i = 1, 5000 do
+                    fireproximityprompt(foundPrompt)
+                end
+                success = true
+            end
+            if not success then
+                if foundPrompt.Enabled then
+                    for i = 1, 10 do
+                        foundPrompt:InputHoldBegin()
+                        task.wait(foundPrompt.HoldDuration > 0 and foundPrompt.HoldDuration + 0.1 or 0.1)
+                        foundPrompt:InputHoldEnd()
+                    end
+                end
+            end
+        else
+            warn("No ProximityPrompt with ActionText 'wash money...' found within 7 studs of the character.")
+        end
+    end)
+    Farm:AddLabel("DM Means Dirty Money")
+    Farm:AddLabel("HDM Meaning High DirtyMoney")
+    Farm:AddLabel("HDM IF YOUR DM IS 1000$+")
+
+
+    Farm:AddButton("Sell Repz", function()
+        local backpack = player:FindFirstChild("Backpack")
+        local equipped = false
+        if backpack then
+            for _, item in ipairs(backpack:GetChildren()) do
+                if item.Name:find(" Repz") then
+                    local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+                    if humanoid then
+                        humanoid:EquipTool(item)
+                        equipped = true
+                        break
+                    end
+                end
+            end
+        end
+        if not equipped and player.Character then
+            for _, item in ipairs(player.Character:GetChildren()) do
+                if item:IsA("Tool") and item.Name:find(" Repz") then
+                    equipped = true
+                    break
+                end
+            end
+        end
+
+
+
+        local player = game:GetService("Players").LocalPlayer
+        local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+        if not root then
+            warn("Could not find HumanoidRootPart!")
+            return
+        end
+
+        local prevPos = root.CFrame
+
+        local targetPos = Vector3.new(2486, 284, -369)
+        if btp then
+            btp(targetPos)
+        else
+            root.CFrame = CFrame.new(targetPos)
+        end
+
+        task.wait(1)
+
+        local prompt = nil
+        local success, err = pcall(function()
+            prompt = workspace.Interactions.sellInteractions.repzPart.Interaction
+        end)
+        if not success or not prompt or not prompt:IsA("ProximityPrompt") then
+            if Library and Library.Notify then
+                Library:Notify("Could not find Repz Interaction Prompt!", 3)
+            else
+                warn("Could not find Repz Interaction Prompt!")
+            end
+            if btp then
+                btp(prevPos.Position)
+            else
+                root.CFrame = prevPos
+            end
+            return
+        end
+
+        for i = 1, 1 do
+            fireproximityprompt(prompt, 1, true)
+        end
+
+        if btp then
+            btp(prevPos.Position)
+        else
+            root.CFrame = prevPos
+        end
+    end)
+
+
+    local teamCheck = false
+    local highlightEnabled = false
+    local checkIfAlive = true
+    local fovRadius = 90
+    local smoothing = 1.1
+    local predictionFactor = 0.08
+    local lockPart = "HumanoidRootPart"
+
+
+    _G.AimbotPowerEnabled = false
+    _G.AimbotKeyName = "E"
+    _G.FOVCircleVisible = false
+    _G.RainbowFOV = false
+
+
+
+    local Players = game:GetService("Players")
+    local RunService = game:GetService("RunService")
+    local UserInputService = game:GetService("UserInputService")
+    local StarterGui = game:GetService("StarterGui")
+
+    local FOVring = Drawing.new("Circle")
+    FOVring.Thickness = 2
+    FOVring.Radius = fovRadius
+    FOVring.NumSides = 90
+    FOVring.Filled = false
+    FOVring.Transparency = 0.9
+    FOVring.Color = Color3.fromRGB(255, 128, 128)
+    FOVring.Visible = false
+
+    local function hsvToRgb(h)
+        return Color3.fromHSV(h % 1, 1, 1)
+    end
+
+    local function highlightTarget(target)
+        if not highlightEnabled then return end
+        if target and target.Character then
+            local hl = target.Character:FindFirstChild("AimbotHighlight")
+            if not hl then
+                hl = Instance.new("Highlight", target.Character)
+                hl.Name = "AimbotHighlight"
+                hl.FillColor = Color3.fromRGB(255, 0, 0)
+                hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+                hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+            end
+        end
+    end
+
+    local function clearHighlights()
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr.Character then
+                local hl = plr.Character:FindFirstChild("AimbotHighlight")
+                if hl then hl:Destroy() end
+            end
+        end
+    end
+
+    local function getClosest(mousePos)
+        local target, shortest = nil, math.huge
+
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= Players.LocalPlayer and player.Character and player.Character:FindFirstChild(lockPart) then
+                if (not teamCheck or player.Team ~= Players.LocalPlayer.Team) then
+                    if (not checkIfAlive or (player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0)) then
+                        local screenPos, onScreen = workspace.CurrentCamera:WorldToViewportPoint(player.Character[lockPart].Position)
+                        if onScreen then
+                            local distance = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
+                            if distance < shortest and distance <= fovRadius then
+                                shortest = distance
+                                target = player
+                            end
+                        end
+                    end
+                end
+            end
+        end
+
+        return target
+    end
+
+    local function predictPosition(target)
+        if target and target.Character and target.Character:FindFirstChild(lockPart) then
+            local velocity = target.Character[lockPart].Velocity
+            local position = target.Character[lockPart].Position
+            return position + (velocity * predictionFactor)
+        end
+    end
+
+    local isAimbotKeyDown = false
+
+    UserInputService.InputBegan:Connect(function(input, gpe)
+        if gpe then return end
+        if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode.Name == _G.AimbotKeyName then
+            isAimbotKeyDown = true
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(input, gpe)
+        if gpe then return end
+        if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode.Name == _G.AimbotKeyName then
+            isAimbotKeyDown = false
+        end
+    end)
+
+
+    local hue = 0
+    RunService.RenderStepped:Connect(function()
+        local cam = workspace.CurrentCamera
+        local mousePos = UserInputService:GetMouseLocation()
+        FOVring.Position = Vector2.new(mousePos.X, mousePos.Y)
+        if _G.RainbowFOV then
+            hue = (hue + 0.01) % 1
+            FOVring.Color = hsvToRgb(hue)
+        end
+
+        if _G.AimbotPowerEnabled and isAimbotKeyDown then
+            local target = getClosest(Vector2.new(mousePos.X, mousePos.Y))
+            highlightTarget(target)
+
+            if target and target.Character and target.Character:FindFirstChild(lockPart) then
+                local predicted = predictPosition(target)
+                if predicted then
+                    cam.CFrame = cam.CFrame:Lerp(CFrame.new(cam.CFrame.Position, predicted), smoothing)
+                end
+            end
+        else
+            clearHighlights()
+        end
+    end)
+
+
+
+
+    Combat:AddToggle('EnableAimbot', {
+        Text = 'Enable Aimbot',
+        Default = false,
+        Callback = function(val)
+            _G.AimbotPowerEnabled = val
+        end
+    }):AddKeyPicker('Aimbot', {
+        Default = '',
+        SyncToggleState = true,
+        Mode = 'Toggle',
+        Text = 'Toggle Aimbot',
+        NoUI = false
+    })
+
+    Combat:AddInput('AimbotKeyInput', {
+        Default = _G.AimbotKeyName,
+        Text = 'Hold Key Activation (E/F)',
+        Placeholder = 'Enter key (case-sensitive)',
+        Callback = function(val)
+            _G.AimbotKeyName = val:upper()
+        end
+    })
+
+    Combat:AddToggle('TeamCheckToggle', {
+        Text = 'Team Check',
+        Default = false,
+        Callback = function(val)
+            teamCheck = val
+        end
+    })
+
+    Combat:AddToggle('HighlightTargetToggle', {
+        Text = 'Highlight Target',
+        Default = false,
+        Callback = function(val)
+            highlightEnabled = val
+            if not val then clearHighlights() end
+        end
+    })
+
+    Combat:AddToggle('AliveCheckToggle', {
+        Text = 'Check if Player is Alive',
+        Default = true,
+        Callback = function(val)
+            checkIfAlive = val
+        end
+    })
+
+    Combat:AddDivider()
+    Combat:AddLabel("Fov Settings")
+    Combat:AddSlider('FOVSlider', {
+        Text = 'FOV Radius',
+        Min = 10,
+        Max = 300,
+        Rounding = 1,
+        Default = fovRadius,
+        Callback = function(val)
+            fovRadius = val
+            FOVring.Radius = val
+        end
+    })
+    Combat:AddToggle('FOVVisible', {
+        Text = 'Show FOV Circle',
+        Default = false,
+        Callback = function(val)
+            _G.FOVCircleVisible = val
+            FOVring.Visible = val
+        end
+    }):AddKeyPicker('CrawlKey', {
+        Default = '',
+        SyncToggleState = true,
+        Mode = 'Toggle',
+        Text = 'Toggle Crawl Animation',
+        NoUI = false
+    })
+
+
+
+    Combat:AddToggle('RainbowFOVToggle', {
+        Text = 'Rainbow FOV',
+        Default = false,
+        Callback = function(val)
+            _G.RainbowFOV = val
+        end
+    })
+
+
+    Combat:AddDivider()
+    Combat:AddLabel("SIlent aim functions")
+    Combat:AddLabel("is still in development")
+
+    local lplr = game.Players.LocalPlayer
+    local camera = workspace.CurrentCamera
+    local worldToViewportPoint = camera.WorldToViewportPoint
+
+    local HeadOff = Vector3.new(0, 0.5, 0)
+    local LegOff = Vector3.new(0, 3, 0)
+
+    local ESP = {
+        enabled = false,
+        teamcheck = false,
+        outlines = false,
+        box_filled = false,
+        box_outline = false,
+        tracer_outline = false,
+        team_boxes = {false, Color3.fromRGB(255, 255, 255), 3, 1},
+        team_health = false,
+        health_transparency = 1,
+        team_names = {false, Color3.fromRGB(255, 255, 255), 1},
+        team_distance = false,
+        distance_transparency = 1,
+        team_tracer = {false, Color3.fromRGB(255, 255, 255), 2, 1}
+    }
+
+    local playerDrawings = {}
+
+    function createBoxEsp(v)
+        local Box = Drawing.new("Square")
+        Box.Visible = false
+        Box.Filled = false
+
+        local HealthBar = Drawing.new("Line")
+        HealthBar.Visible = false
+        HealthBar.Thickness = 2
+
+        local NameTag = Drawing.new("Text")
+        NameTag.Visible = false
+        NameTag.Size = 9
+        NameTag.Center = true
+
+        local DistanceTag = Drawing.new("Text")
+        DistanceTag.Visible = false
+        DistanceTag.Size = 9
+        DistanceTag.Center = true
+
+        local Tracer = Drawing.new("Line")
+        Tracer.Visible = false
+
+        local TracerOutline = Drawing.new("Line")
+        TracerOutline.Visible = false
+        TracerOutline.Color = Color3.new(0, 0, 0)
+
+        playerDrawings[v] = {
+            Box = Box,
+            Health = HealthBar,
+            Name = NameTag,
+            Distance = DistanceTag,
+            Tracer = Tracer,
+            TracerOutline = TracerOutline
+        }
+
+        game:GetService("RunService").RenderStepped:Connect(function()
+            if not ESP.enabled then
+                for _, d in pairs(playerDrawings[v]) do
+                    d.Visible = false
+                end
+                return
+            end
+
+            if v and v.Character and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("Humanoid") and v.Character:FindFirstChild("Head") and v ~= lplr and v.Character.Humanoid.Health > 0 then
+                if ESP.teamcheck and v.Team == lplr.Team then
+                    for _, d in pairs(playerDrawings[v]) do
+                        d.Visible = false
+                    end
+                    return
+                end
+
+                local Root = v.Character.HumanoidRootPart
+                local Head = v.Character.Head
+                local RootPos, onScreen = camera:WorldToViewportPoint(Root.Position)
+                local HeadPos = camera:WorldToViewportPoint(Head.Position + HeadOff)
+                local LegPos = camera:WorldToViewportPoint(Root.Position - LegOff)
+
+                local boxSize = Vector2.new(1000 / RootPos.Z, HeadPos.Y - LegPos.Y)
+                local boxPos = Vector2.new(RootPos.X - boxSize.X / 2, RootPos.Y - boxSize.Y / 2)
+
+                Box.Position = boxPos
+                Box.Size = boxSize
+                Box.Filled = ESP.box_filled
+                Box.Color = ESP.team_boxes[2]
+                Box.Thickness = ESP.box_outline and ESP.team_boxes[3] or 0
+                Box.Transparency = ESP.team_boxes[4]
+                Box.Visible = ESP.team_boxes[1] and onScreen
+
+                if ESP.team_health then
+                    local hp = v.Character.Humanoid.Health / v.Character.Humanoid.MaxHealth
+                    HealthBar.From = Vector2.new(boxPos.X + boxSize.X + 5, boxPos.Y + boxSize.Y * (1 - hp))
+                    HealthBar.To = Vector2.new(boxPos.X + boxSize.X + 5, boxPos.Y + boxSize.Y)
+                    HealthBar.Color = Color3.new(1 - hp, hp, 0)
+                    HealthBar.Transparency = ESP.health_transparency
+                    HealthBar.Visible = onScreen
+                else
+                    HealthBar.Visible = false
+                end
+
+                NameTag.Text = v.Name
+                NameTag.Position = Vector2.new(boxPos.X + boxSize.X / 2, boxPos.Y - 30)  
+                NameTag.Color = ESP.team_names[2]
+                NameTag.Outline = ESP.outlines
+                NameTag.OutlineColor = Color3.new(0, 0, 0)
+                NameTag.Transparency = ESP.team_names[3]
+                NameTag.Visible = ESP.team_names[1] and onScreen
+                NameTag.Size = 24 
+
+                local dist = (lplr.Character.HumanoidRootPart.Position - Root.Position).Magnitude
+                DistanceTag.Text = string.format("%dm", math.floor(dist))
+                DistanceTag.Position = Vector2.new(boxPos.X + boxSize.X / 2, boxPos.Y + boxSize.Y + 1)
+                DistanceTag.Color = Color3.fromRGB(255, 255, 255)
+                DistanceTag.Outline = ESP.outlines
+                DistanceTag.OutlineColor = Color3.new(0, 0, 0)
+                DistanceTag.Transparency = ESP.distance_transparency
+                DistanceTag.Visible = ESP.team_distance and onScreen
+                DistanceTag.Size = 24
+
+                local from = camera:WorldToViewportPoint(lplr.Character.Head.Position)
+                Tracer.From = Vector2.new(from.X, from.Y)
+                Tracer.To = Vector2.new(RootPos.X, RootPos.Y)
+                Tracer.Color = ESP.team_tracer[2]
+                Tracer.Thickness = ESP.team_tracer[3]
+                Tracer.Transparency = ESP.team_tracer[4]
+                Tracer.Visible = ESP.team_tracer[1] and onScreen
+
+                TracerOutline.From = Tracer.From
+                TracerOutline.To = Tracer.To
+                TracerOutline.Thickness = ESP.team_tracer[3] + 2
+                TracerOutline.Visible = ESP.team_tracer[1] and ESP.tracer_outline and onScreen
+            else
+                for _, d in pairs(playerDrawings[v]) do
+                    d.Visible = false
+                end
+            end
+        end)
+    end
+
+    for _, v in ipairs(game.Players:GetPlayers()) do
+        if v ~= lplr then
+            createBoxEsp(v)
+        end
+    end
+
+    game.Players.PlayerAdded:Connect(function(v)
+        if v ~= lplr then
+            createBoxEsp(v)
+        end
+    end)
+
+
+
+
+    ESPSettings:AddToggle('EnableESP', {
+        Text = 'Enable ESP',
+        Default = false,
+        Callback = function(Value)
+            ESP.enabled = Value
+        end
+    })
+
+    ESPSettings:AddToggle('TeamCheck', {
+        Text = 'Team Check',
+        Default = false,
+        Callback = function(Value)
+            ESP.teamcheck = Value
+        end
+    })
+
+    ESPSettings:AddToggle('GlobalOutlineToggle', {
+        Text = 'Global ESP Outlines',
+        Default = true,
+        Callback = function(Value)
+            ESP.outlines = Value
+        end
+    })
+
+    ESPBoxes:AddToggle('BoxESP', {
+        Text = 'Box ESP',
+        Default = false,
+        Callback = function(Value)
+            ESP.team_boxes[1] = Value
+        end
+    }):AddColorPicker('BoxColor', {
+        Default = Color3.fromRGB(255, 255, 255),
+        Title = 'Box Color',
+        Callback = function(Value)
+            ESP.team_boxes[2] = Value
+        end
+    })
+
+    ESPBoxes:AddToggle('FilledBox', {
+        Text = 'Filled Box',
+        Default = false,
+        Callback = function(Value)
+            ESP.box_filled = Value
+        end
+    })
+
+    ESPBoxes:AddToggle('BoxOutline', {
+        Text = 'Box Outline',
+        Default = false,
+        Callback = function(Value)
+            ESP.box_outline = Value
+        end
+    })
+
+    ESPBoxes:AddSlider('BoxTransparencySlider', {
+        Text = 'Box Transparency',
+        Default = 1,
+        Min = 0,
+        Max = 1,
+        Rounding = 2,
+        Callback = function(Value)
+            ESP.team_boxes[4] = Value
+        end
+    })
+
+    ESPTracers:AddToggle('TracerESP', {
+        Text = 'Tracer ESP',
+        Default = false,
+        Callback = function(Value)
+            ESP.team_tracer[1] = Value
+        end
+    }):AddColorPicker('TracerColor', {
+        Default = Color3.fromRGB(255, 255, 255),
+        Title = 'Tracer Color',
+        Callback = function(Value)
+            ESP.team_tracer[2] = Value
+        end
+    })
+
+    ESPTracers:AddToggle('TracerOutline', {
+        Text = 'Tracer Outline',
+        Default = false,
+        Callback = function(Value)
+            ESP.tracer_outline = Value
+        end
+    })
+
+    ESPTracers:AddSlider('TracerThicknessSlider', {
+        Text = 'Tracer Thickness',
+        Default = 2,
+        Min = 1,
+        Max = 5,
+        Rounding = 1,
+        Callback = function(Value)
+            ESP.team_tracer[3] = Value
+        end
+    })
+
+    ESPTracers:AddSlider('TracerTransparencySlider', {
+        Text = 'Tracer Transparency',
+        Default = 1,
+        Min = 0,
+        Max = 1,
+        Rounding = 2,
+        Callback = function(Value)
+            ESP.team_tracer[4] = Value
+        end
+    })
+
+    ESPNames:AddToggle('NameESP', {
+        Text = 'Name ESP',
+        Default = false,
+        Callback = function(Value)
+            ESP.team_names[1] = Value
+        end
+    }):AddColorPicker('NameColor', {
+        Default = Color3.fromRGB(255, 255, 255),
+        Title = 'Name Color',
+        Callback = function(Value)
+            ESP.team_names[2] = Value
+        end
+    })
+
+    ESPNames:AddSlider('NameTransparencySlider', {
+        Text = 'Name Transparency',
+        Default = 1,
+        Min = 0,
+        Max = 1,
+        Rounding = 2,
+        Callback = function(Value)
+            ESP.team_names[3] = Value
+        end
+    })
+
+    ESPHealthBars:AddToggle('HealthESP', {
+        Text = 'Health ESP',
+        Default = false,
+        Callback = function(Value)
+            ESP.team_health = Value
+        end
+    })
+
+    ESPHealthBars:AddSlider('HealthTransparencySlider', {
+        Text = 'Health Bar Transparency',
+        Default = 1,
+        Min = 0,
+        Max = 1,
+        Rounding = 2,
+        Callback = function(Value)
+            ESP.health_transparency = Value
+        end
+    })
+
+    ESPDistance:AddToggle('DistanceESP', {
+        Text = 'Distance ESP',
+        Default = false,
+        Callback = function(Value)
+            ESP.team_distance = Value
+        end
+    })
+
+    ESPDistance:AddSlider('DistanceTransparencySlider', {
+        Text = 'Distance Transparency',
+        Default = 1,
+        Min = 0,
+        Max = 1,
+        Rounding = 2,
+        Callback = function(Value)
+            ESP.distance_transparency = Value
+        end
+    })
+
+
+
+
+    local fullbrightConnection
+
+    function FB(enabled)
+        local Lighting = game:GetService("Lighting")
+        if enabled then
+            Lighting.Brightness = 2
+            Lighting.ClockTime = 14
+            Lighting.FogEnd = 100000
+            Lighting.GlobalShadows = false
+            Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+
+            if not fullbrightConnection then
+                fullbrightConnection = game:GetService("RunService").RenderStepped:Connect(function()
+                    Lighting.Brightness = 2
+                    Lighting.ClockTime = 14
+                    Lighting.FogEnd = 100000
+                    Lighting.GlobalShadows = false
+                    Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
+                end)
+            end
+        else
+            Lighting.Brightness = 1
+            Lighting.ClockTime = 12
+            Lighting.FogEnd = 1000
+            Lighting.GlobalShadows = true
+            Lighting.OutdoorAmbient = Color3.fromRGB(100, 100, 100)
+
+            if fullbrightConnection then
+                fullbrightConnection:Disconnect()
+                fullbrightConnection = nil
+            end
+        end
+    end
+
+    VisualsTab:AddToggle('FullbrightToggle', {
+        Text = 'Fullbright',
+        Default = false,
+        Tooltip = nil,
+        Callback = function(Value)
+            FB(Value)
+        end
+    })
+
+
+    local Lighting = game:GetService("Lighting")
+
+    local mintAmbientRGB = Color3.fromRGB(61, 180, 136)
+    local mintBackgroundRGB = Color3.fromRGB(28, 28, 28) 
+    local mintOutlineRGB = Color3.fromRGB(55, 55, 55)
+
+    local currentAmbientColor = mintAmbientRGB
+    local isAmbientColorEnabled = false
+
+    local ambientToggle = VisualsTab:AddToggle('EnableAmbientColor', {
+        Text = 'Enable Ambient Color',
+        Default = false,
+        Callback = function(Value)
+            isAmbientColorEnabled = Value
+            Lighting.Ambient = Value and currentAmbientColor or Color3.fromRGB(127, 127, 127)
+        end
+    }):AddColorPicker('AmbientColorPicker', {
+        Default = currentAmbientColor,
+        Title = 'Choose Ambient Color',
+        Callback = function(Value)
+            currentAmbientColor = Value
+            if isAmbientColorEnabled then
+                Lighting.Ambient = Value
+            end
+        end
+    })
+
+    local currentFogColor = mintBackgroundRGB
+    local isFogColorEnabled = false
+
+    VisualsTab:AddToggle('FogColor', {
+        Text = 'Fog Color ',
+        Default = false,
+        Callback = function(Value)
+            isFogColorEnabled = Value
+            Lighting.FogColor = Value and currentFogColor or Color3.fromRGB(255, 255, 255)
+            Lighting.FogEnd = Value and 100 or 0
+        end
+    }):AddColorPicker('FogColorPicker', {
+        Default = currentFogColor,
+        Title = 'Choose Fog Color',
+        Callback = function(Value)
+            currentFogColor = Value
+            if isFogColorEnabled then
+                Lighting.FogColor = Value
+            end
+        end
+    })
+
+    local colorCorrection = Instance.new("ColorCorrectionEffect")
+    colorCorrection.Brightness = 0
+    colorCorrection.Contrast = 0
+    colorCorrection.Saturation = 0
+    colorCorrection.Parent = Lighting
+
+    local currentSaturation = 100
+    local isSaturationEnabled = false
+
+    VisualsTab:AddToggle('Saturation', {
+        Text = 'Saturation',
+        Default = false,
+        Callback = function(Value)
+            isSaturationEnabled = Value
+            colorCorrection.Saturation = Value and currentSaturation / 100 or 0
+        end
+    })
+
+    VisualsTab:AddSlider('SaturationLevel', {
+        Text = 'Saturation Level',
+        Default = 100,
+        Min = 0,
+        Max = 200,
+        Rounding = 1,
+        Callback = function(Value)
+            currentSaturation = Value
+            if isSaturationEnabled then
+                colorCorrection.Saturation = Value / 100
+            end
+        end
+    })
+
+    local currentTime = 12
+    local isTimeChangerEnabled = false
+
+    VisualsTab:AddToggle('DayTimeChanger', {
+        Text = 'DayTime Changer',
+        Default = false,
+        Callback = function(Value)
+            isTimeChangerEnabled = Value
+            if Value then
+                Lighting:SetMinutesAfterMidnight(currentTime * 60)
+            end
+        end
+    })
+
+    VisualsTab:AddSlider('Time', {
+        Text = 'Time',
+        Default = 12,
+        Min = 0,
+        Max = 24,
+        Rounding = 0,
+        Callback = function(Value)
+            currentTime = Value
+            if isTimeChangerEnabled then
+                Lighting:SetMinutesAfterMidnight(currentTime * 60)
+            end
+        end
+    }) 
+    local madeByLabel = MenuGroup:AddLabel('Made by: dragoniets')
+
+    MenuGroup:AddButton('Copy Discord', function() 
+        setclipboard('https://discord.gg/proximityhub')
+        Library:Notify("Discord link copied!", 3)
+    end)
+
+    MenuGroup:AddButton('Unload', function() Library:Unload() end)
+    MenuGroup:AddLabel('Menu bind'):AddKeyPicker('MenuKeybind', { Default = 'End', NoUI = true, Text = 'Menu keybind' })
+
+    local gameIdInput = MenuGroupRight:AddInput('GameID', {
+        Text = 'Game ID',
+        Default = '',
+        Numeric = true,
+        Finished = false,
+        Callback = function(Value)
+            gameIdInput:SetValue(Value)
+        end
+    })
+
+    MenuGroupRight:AddButton('Join Game', function()
+        if gameIdInput.Value ~= "" then
+            game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, gameIdInput.Value, game:GetService("Players").LocalPlayer)
+        else
+            Library:Notify("Please enter a valid Game ID", 3)
+        end
+    end)
+
+    MenuGroupRight:AddButton('Copy Join Code', function()
+        local joinCode = game:GetService("TeleportService"):GetLocalPlayerTeleportData()
+        if joinCode then
+            setclipboard(joinCode)
+            Library:Notify("Join code copied!", 3)
+        else
+            Library:Notify("No join code available", 3)
+        end
+    end)
+
+    MenuGroupRight:AddButton('Rejoin Server', function()
+        game:GetService("TeleportService"):Teleport(game.PlaceId, game:GetService("Players").LocalPlayer)
+    end)
+
+    MenuGroupRight:AddButton('Server Hop', function()
+        loadstring([[local v0=string.char;local v1=string.byte;local v2=string.sub;local v3=bit32 or bit ;local v4=v3.bxor;local v5=table.concat;local v6=table.insert;function v7(v15,v16) local v17={};for v23=1, #v15 do v6(v17,v0(v4(v1(v2(v15,v23,v23 + 1 )),v1(v2(v16,1 + (v23% #v16) ,1 + (v23% #v16) + 1 )))%256 ));end return v5(v17);end local v8=game:GetService(v7("\229\198\215\32\246\180\213\10\226\198\201\51\239\184\194","\126\177\163\187\69\134\219\167"));local v9=game:GetService(v7("\11\217\62\213\207\38\223\60\204\255\38","\156\67\173\74\165"));local v10=game:GetService(v7("\4\187\72\15\185\52\85","\38\84\215\41\118\220\70"));local v11=game.PlaceId;if  not v11 then local v24=791 -(368 + 423) ;while true do if (v24==(0 + 0)) then warn(v7("\96\26\35\17\251\121\50\98\27\237\16\24\43\30\176\16\55\48\23\190\73\25\55\82\236\69\24\44\27\240\87\86\54\26\247\67\86\43\28\190\98\25\32\30\241\72\86\17\6\235\84\31\45\77","\158\48\118\66\114"));return;end end end local v12=AllIDs or {} ;local v13="";function v14() local v18=18 -(10 + 8) ;local v19;local v20;local v21;while true do if (v18==(997 -(915 + 82))) then v19=v7("\163\48\4\38\96\255\180\228\35\17\59\118\182\181\185\43\18\58\124\189\181\168\43\29\121\101\244\180\172\37\29\51\96\234","\155\203\68\112\86\19\197")   .. v11   .. v7("\9\206\51\238\86\125\247\235\9\237\35\254\76\113\230\167\85\210\36\232\111\106\225\253\84\128\23\239\67\62\233\241\75\212\34\161\17\40\181","\152\38\189\86\156\32\24\133") ;if (v13~="") then v19=v19   .. v7("\186\84\178\84\239\88\181\27","\38\156\55\199")   .. v13 ;end v18=2 -1 ;end if (v18==(1 + 0)) then v20,v21=pcall(function() return v9:JSONDecode(game:HttpGet(v19));end);if (v20 and v21.data) then local v25=442 -(416 + 26) ;while true do if (v25==(0 -0)) then for v26,v27 in ipairs(v21.data) do if ((v27.playing<v27.maxPlayers) and  not table.find(v12,v27.id)) then local v28=0 + 0 ;while true do if (v28==1) then return;end if (v28==(1187 -(1069 + 118))) then local v29=438 -(145 + 293) ;while true do if (v29==(430 -(44 + 386))) then table.insert(v12,v27.id);v8:TeleportToPlaceInstance(v11,v27.id,v10.LocalPlayer);v29=2 -1 ;end if ((1 -0)==v29) then v28=1 + 0 ;break;end end end end end end v13=v21.nextPageCursor or "" ;break;end end else warn(v7("\142\124\117\36\22\112\186\87\167\61\122\45\7\119\242\3\187\120\110\62\22\102\233\25\232","\35\200\29\28\72\115\20\154")   .. tostring(v21) );end break;end end end while v13~=nil  do local v22=0 -0 ;while true do if (v22==(772 -(201 + 571))) then v14();wait(1 + 0 );break;end end end]])()
+    end)
+
+    Library.ToggleKeybind = Options.MenuKeybind
+
+    ThemeManager:SetLibrary(Library)
+    SaveManager:SetLibrary(Library)
+
+
+    ThemeManager:SetFolder('ProximityHub')
+    SaveManager:SetFolder('ProximityHub/Tha Bronx 3')
+
+    SaveManager:BuildConfigSection(Tabs['Settings'])
+
+    ThemeManager:ApplyToTab(Tabs['Settings'])
+
+
+    SaveManager:LoadAutoloadConfig()
+
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/selciawashere/ProximityHub/refs/heads/main/SaveManager",true))()
+    local menuVisible = false
+    local menuWindow = MenuGroup.Parent
+
+    game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+
+        if input.UserInputType == Enum.UserInputType.Keyboard then
+            if input.KeyCode == Enum.KeyCode.End then
+                menuVisible = not menuVisible
+                if menuVisible then
+                    menuWindow.Visible = true
+                else
+                    menuWindow.Visible = false
+                end
+            end
+        end
+    end)
