@@ -1,1 +1,328 @@
 
+pcall(function()
+local function createDraggableGui()
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "ProximityHubGui"
+    gui.ResetOnSpawn = false
+    gui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+    local toggleButton = Instance.new("TextButton")
+    toggleButton.Size = UDim2.new(0, 40, 0, 40)
+    toggleButton.Position = UDim2.new(0, 10, 0, 10)
+    toggleButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    toggleButton.BorderSizePixel = 0
+    toggleButton.Text = "≡"
+    toggleButton.TextColor3 = Color3.new(1, 1, 1)
+    toggleButton.TextSize = 24
+    toggleButton.Font = Enum.Font.GothamBold
+    toggleButton.Parent = gui
+
+    local toggleCorner = Instance.new("UICorner")
+    toggleCorner.CornerRadius = UDim.new(0, 8)
+    toggleCorner.Parent = toggleButton
+
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 350, 0, 250)
+    frame.Position = UDim2.new(0.5, -175, 0.5, -125)
+    frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    frame.BorderSizePixel = 0
+    frame.Active = true
+    frame.Draggable = true
+    frame.Parent = gui
+
+    local UserInputService = game:GetService("UserInputService")
+    local dragging
+    local dragInput
+    local dragStart
+    local startPos
+
+    local isVisible = true
+    toggleButton.MouseButton1Click:Connect(function()
+        isVisible = not isVisible
+        frame.Visible = isVisible
+        toggleButton.Text = isVisible and "≡" or "☰"
+    end)
+
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if not gameProcessed and input.KeyCode == Enum.KeyCode.RightShift then
+            isVisible = not isVisible
+            frame.Visible = isVisible
+            toggleButton.Text = isVisible and "≡" or "☰"
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
+        end
+    end)
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = frame
+
+    local titleBar = Instance.new("Frame")
+    titleBar.Size = UDim2.new(1, 0, 0, 50)
+    titleBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    titleBar.BorderSizePixel = 0
+    titleBar.Parent = frame
+
+    local titleCorner = Instance.new("UICorner")
+    titleCorner.CornerRadius = UDim.new(0, 12)
+    titleCorner.Parent = titleBar
+
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 1, 0)
+    title.BackgroundTransparency = 1
+    title.Text = "ProximityHub Dupe"
+    title.TextColor3 = Color3.new(1, 1, 1)
+    title.TextSize = 24
+    title.Font = Enum.Font.GothamBold
+    title.Parent = titleBar
+
+    local credits = Instance.new("TextLabel")
+    credits.Size = UDim2.new(1, 0, 0, 25)
+    credits.Position = UDim2.new(0, 0, 0, 55)
+    credits.BackgroundTransparency = 1
+    credits.Text = "Scripted by DragonCodes"
+    credits.TextColor3 = Color3.new(0.7, 0.7, 0.7)
+    credits.TextSize = 14
+    credits.Font = Enum.Font.Gotham
+    credits.Parent = frame
+
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(200, 200, 200)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 200, 200))
+    })
+    gradient.Parent = credits
+    local loadingBarBg = Instance.new("Frame")
+    loadingBarBg.Size = UDim2.new(0.8, 0, 0, 6)
+    loadingBarBg.Position = UDim2.new(0.1, 0, 0.7, 0)
+    loadingBarBg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    loadingBarBg.BorderSizePixel = 0
+    loadingBarBg.Parent = frame
+
+    local loadingBarCorner = Instance.new("UICorner")
+    loadingBarCorner.CornerRadius = UDim.new(1, 0)
+    loadingBarCorner.Parent = loadingBarBg
+
+    local loadingBar = Instance.new("Frame")
+    loadingBar.Size = UDim2.new(0, 0, 1, 0)
+    loadingBar.BackgroundColor3 = Color3.fromRGB(50, 255, 50) 
+    loadingBar.BorderSizePixel = 0
+    loadingBar.Parent = loadingBarBg
+
+    local loadingBarFillCorner = Instance.new("UICorner")
+    loadingBarFillCorner.CornerRadius = UDim.new(1, 0)
+    loadingBarFillCorner.Parent = loadingBar
+
+    local autoDupeToggle = Instance.new("TextButton")
+    autoDupeToggle.Size = UDim2.new(0.8, 0, 0, 35)
+    autoDupeToggle.Position = UDim2.new(0.1, 0, 0.6, -17.5)
+    autoDupeToggle.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+    autoDupeToggle.BorderSizePixel = 0
+    autoDupeToggle.Text = "Auto Dupe: OFF"
+    autoDupeToggle.TextColor3 = Color3.new(1, 1, 1)
+    autoDupeToggle.TextSize = 16
+    autoDupeToggle.Font = Enum.Font.GothamBold
+    autoDupeToggle.Parent = frame
+
+    local toggleCorner = Instance.new("UICorner")
+    toggleCorner.CornerRadius = UDim.new(0, 8)
+    toggleCorner.Parent = autoDupeToggle
+
+    local executeButton = Instance.new("TextButton")
+    executeButton.Size = UDim2.new(0.8, 0, 0, 45)
+    executeButton.Position = UDim2.new(0.1, 0, 0.4, -22.5)
+    executeButton.BackgroundColor3 = Color3.fromRGB(50, 255, 50) 
+    executeButton.BorderSizePixel = 0
+    executeButton.Text = "Execute Dupe"
+    executeButton.TextColor3 = Color3.new(1, 1, 1)
+    executeButton.TextSize = 18
+    executeButton.Font = Enum.Font.GothamBold
+    executeButton.Parent = frame
+
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 8)
+    buttonCorner.Parent = executeButton
+
+    local statusLabel = Instance.new("TextLabel")
+    statusLabel.Size = UDim2.new(0.8, 0, 0, 20)
+    statusLabel.Position = UDim2.new(0.1, 0, 0.85, 0)
+    statusLabel.BackgroundTransparency = 1
+    statusLabel.Text = "Ready to execute"
+    statusLabel.TextColor3 = Color3.new(1, 1, 1)
+    statusLabel.TextSize = 14
+    statusLabel.Font = Enum.Font.Gotham
+    statusLabel.Parent = frame
+
+    local isAutoDuping = false
+    local autoDupeConnection
+    local dupeInProgress = false
+
+    local function executeDupe()
+        if dupeInProgress then return end
+        dupeInProgress = true
+        
+        statusLabel.Text = "Executing..."
+        statusLabel.TextColor3 = Color3.fromRGB(255, 255, 0)
+        
+        local tweenInfo = TweenInfo.new(3, Enum.EasingStyle.Linear)
+        local tween = game:GetService("TweenService"):Create(loadingBar, tweenInfo, {
+            Size = UDim2.new(1, 0, 1, 0)
+        })
+        tween:Play()
+
+        if game:GetService("ReplicatedStorage"):FindFirstChild("message") and 
+           game:GetService("ReplicatedStorage").message:FindFirstChild("Frame") and 
+           game:GetService("ReplicatedStorage").message.Frame:FindFirstChild("TextLabel") then
+            game:GetService("ReplicatedStorage").message.Frame.TextLabel:Destroy()
+        end
+
+        task.wait(1)
+        local character = game.Players.LocalPlayer.Character
+
+        local backpack = game.Players.LocalPlayer:FindFirstChild("Backpack")
+        if backpack then
+            for _, item in pairs(backpack:GetChildren()) do
+                if item:FindFirstChild("Handle") and item.Name ~= "Fist" and item.Name ~= "Phone" then
+                    local humanoid = character:FindFirstChildOfClass("Humanoid")
+                    if humanoid then
+                        humanoid:UnequipTools()
+                        task.wait(0.1)
+                        humanoid:EquipTool(item)
+                        task.wait(0.01)
+                    end
+                end
+            end
+        end
+        
+        local gunTool = character:FindFirstChildOfClass("Tool")
+        if not gunTool then
+            statusLabel.Text = "No weapon found!"
+            statusLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+            dupeInProgress = false
+            return
+        end
+        
+        local gunName = gunTool.Name
+
+        local marketGui = game:GetService("Players").LocalPlayer.PlayerGui["Bronx Market 2"]
+        if marketGui then
+            local marketLabel = marketGui.Body.Frames.Market.TextLabel
+            if marketLabel then
+                marketLabel.Text = "Picked: " .. gunName
+            end
+        end
+
+        local args = {
+            gunName,
+            900000
+        }
+        game:GetService("ReplicatedStorage"):WaitForChild("ListWeaponRemote"):FireServer(unpack(args))
+
+        task.wait(0.25)
+
+        local ReplicatedStorage = cloneref(game:GetService("ReplicatedStorage"))
+        local Players = game:GetService("Players")
+        local Workspace = game:GetService("Workspace")
+
+        local function GetCharacter()
+            return Players.LocalPlayer.Character
+        end
+
+        local InventoryRemote = ReplicatedStorage:WaitForChild("Inventory")
+        local BackpackRemote = ReplicatedStorage:WaitForChild("BackpackRemote")
+
+        local character = GetCharacter()
+        if character and character:FindFirstChildOfClass("Tool") then
+            local gunTool = character:FindFirstChildOfClass("Tool")
+            local gunName = gunTool.Name
+
+            local humanoid = character:FindFirstChildOfClass("Humanoid")
+            if humanoid then humanoid:UnequipTools() end
+            BackpackRemote:InvokeServer("Store", gunName)
+
+            task.wait(0.5)
+
+            task.spawn(function()
+                InventoryRemote:FireServer("Change", gunName, "Backpack", safe)
+            end)
+            task.wait(1.2)
+
+            BackpackRemote:InvokeServer("Grab", gunName)
+        end
+
+        task.wait(1)
+
+        local function requireMarket()
+            local marketGui = game:GetService("Players").LocalPlayer.PlayerGui["Bronx Market 2"]
+            local selectedGun = marketGui.Body.Frames.Market.TextLabel.Text:match("Picked: (.+)")
+            
+            if selectedGun then
+                local gunButton = marketGui.Body.Frames.Guns.ScrollingFrame[selectedGun]
+                if gunButton then
+                    for _, connection in pairs(getconnections(gunButton.MouseButton1Click)) do
+                        connection:Fire()
+                    end
+                end
+            end
+        end
+
+        task.spawn(requireMarket)
+        statusLabel.Text = "Dupe completed!"
+        statusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+        dupeInProgress = false
+    end
+
+    autoDupeToggle.MouseButton1Click:Connect(function()
+        isAutoDuping = not isAutoDuping
+        autoDupeToggle.BackgroundColor3 = isAutoDuping and Color3.fromRGB(50, 255, 50) or Color3.fromRGB(255, 50, 50)
+        autoDupeToggle.Text = "Auto Dupe: " .. (isAutoDuping and "ON" or "OFF")
+        
+        if isAutoDuping then
+            autoDupeConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                if not isAutoDuping then
+                    autoDupeConnection:Disconnect()
+                    return
+                end
+                if not dupeInProgress then
+                    executeDupe()
+                end
+                task.wait(5)
+            end)
+        else
+            if autoDupeConnection then
+                autoDupeConnection:Disconnect()
+            end
+        end
+    end)
+
+    executeButton.MouseEnter:Connect(function()
+        game:GetService("TweenService"):Create(executeButton, TweenInfo.new(0.3), {
+            BackgroundColor3 = Color3.fromRGB(70, 255, 70) 
+        }):Play()
+    end)
+
+    executeButton.MouseLeave:Connect(function()
+        game:GetService("TweenService"):Create(executeButton, TweenInfo.new(0.3), {
+            BackgroundColor3 = Color3.fromRGB(50, 255, 50)
+        }):Play()
+    end)
+
+    spawn(function()
+        while true do
+            for i = 0, 1, 0.01 do
+                gradient.Offset = Vector2.new(i, 0)
+                wait(0.02)
+            end
+        end
+    end)
+
+    executeButton.MouseButton1Click:Connect(executeDupe)
+end
+
+createDraggableGui()
+end)
