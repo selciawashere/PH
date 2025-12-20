@@ -2173,3 +2173,76 @@ end
 
 print("dino was here :\)")
 return library
+
+-- Add a draggable image button to hide/show the UI
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local PlayerGui = player:FindFirstChild("PlayerGui") or player:WaitForChild("PlayerGui")
+
+-- Wait for CoreGui or PlayerGui based on where your UI shows
+local parent = library.gui or library.screen or PlayerGui
+
+-- Create the button
+local button = Instance.new("ImageButton")
+button.Name = "HideShowButton"
+button.Image = "rbxassetid://3926307971" -- Some example icon, you can change it
+button.ImageRectOffset = Vector2.new(924, 724)
+button.ImageRectSize = Vector2.new(36, 36)
+button.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+button.Size = UDim2.new(0, 40, 0, 40)
+button.Position = UDim2.new(0, 30, 0, 40)
+button.Draggable = false -- Roblox deprecated this, do manual drag instead
+button.Active = true
+button.Selectable = true
+button.AnchorPoint = Vector2.new(0,0)
+button.ZIndex = 10
+button.Parent = parent
+
+-- Drag logic
+local dragging = false
+local dragInput, mousePos, framePos
+
+button.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        mousePos = input.Position
+        framePos = button.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+button.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - mousePos
+        button.Position = UDim2.new(
+            framePos.X.Scale, framePos.X.Offset + delta.X,
+            framePos.Y.Scale, framePos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+-- Hide/Show logic
+local uiToHide = parent
+if uiToHide:FindFirstChild("Main") then -- if the UI is stored as "Main"
+    uiToHide = uiToHide.Main
+end
+
+local hidden = false
+button.MouseButton1Click:Connect(function()
+    hidden = not hidden
+    if uiToHide then
+        uiToHide.Visible = not hidden
+    end
+end)
