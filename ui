@@ -14,10 +14,10 @@ local utility = {}
 -- themes
 local objects = {}
 local themes = {
-	Background = Color3.fromRGB(2, 2, 2),
-	Glow = Color3.fromRGB(2, 2, 2),
-	Accent = Color3.fromRGB(10, 10, 10),
-	LightContrast = Color3.fromRGB(20, 20, 20),
+	Background = Color3.fromRGB(24, 24, 24), 
+	Glow = Color3.fromRGB(0, 0, 0), 
+	Accent = Color3.fromRGB(10, 10, 10), 
+	LightContrast = Color3.fromRGB(20, 20, 20), 
 	DarkContrast = Color3.fromRGB(14, 14, 14),  
 	TextColor = Color3.fromRGB(255, 255, 255)
 }
@@ -154,40 +154,24 @@ do
 		
 		return key
 	end
-
+	
 	function utility:DraggingEnabled(frame, parent)
+	
 		parent = parent or frame
-
-		local dragging
-		local dragInput
-		local dragStart
-		local startPos
-
-		local UserInputService = game:GetService("UserInputService")
-
-		local function update(input)
-			local delta = input.Position - dragStart
-			parent.Position = UDim2.new(
-				startPos.X.Scale,
-				startPos.X.Offset + delta.X,
-				startPos.Y.Scale,
-				startPos.Y.Offset + delta.Y
-			)
-		end
+		
+		-- enhanced for both mouse and touch (mobile) support
+		local dragging = false
+		local dragInput, mousePos, framePos
 
 		frame.InputBegan:Connect(function(input)
 			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 				dragging = true
-				dragStart = input.Position
-				startPos = parent.Position
+				mousePos = input.Position
+				framePos = parent.Position
 
-				local conn
-				conn = input.Changed:Connect(function()
+				input.Changed:Connect(function()
 					if input.UserInputState == Enum.UserInputState.End then
 						dragging = false
-						if conn then
-							conn:Disconnect()
-						end
 					end
 				end)
 			end
@@ -199,19 +183,23 @@ do
 			end
 		end)
 
-		UserInputService.InputChanged:Connect(function(input)
-			if (input == dragInput) and dragging then
-				update(input)
+		input.InputChanged:Connect(function(input)
+			if input == dragInput and dragging then
+				local delta = input.Position - mousePos
+				parent.Position = UDim2.new(
+					framePos.X.Scale, framePos.X.Offset + delta.X,
+					framePos.Y.Scale, framePos.Y.Offset + delta.Y
+				)
 			end
 		end)
-	end
 
+	end
+	
 	function utility:DraggingEnded(callback)
-		self.ended = self.ended or {}
 		table.insert(self.ended, callback)
 	end
-
-
+	
+end
 
 -- classes
 
