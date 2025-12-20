@@ -143,14 +143,14 @@ do
 		}
 	end
 	
-	function utility:KeyPressed() 
+	function utility:KeyPressed() -- yield until next key is pressed
 		local key = input.InputBegan:Wait()
 		
 		while key.UserInputType ~= Enum.UserInputType.Keyboard	 do
 			key = input.InputBegan:Wait()
 		end
 		
-		wait() 
+		wait() -- overlapping connection
 		
 		return key
 	end
@@ -159,62 +159,36 @@ do
 	
 		parent = parent or frame
 		
+		-- stolen from wally or kiriot, kek
 		local dragging = false
 		local dragInput, mousePos, framePos
 
-		local function updateInput(input)
-			local delta = input.Position - mousePos
-			parent.Position = UDim2.new(
-				framePos.X.Scale, framePos.X.Offset + delta.X,
-				framePos.Y.Scale, framePos.Y.Offset + delta.Y
-			)
-		end
-
 		frame.InputBegan:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			if input.UserInputType == Enum.UserInputType.MouseButton1 then
 				dragging = true
 				mousePos = input.Position
 				framePos = parent.Position
-
-				local changedConn
-				changedConn = input.Changed:Connect(function()
+				
+				input.Changed:Connect(function()
 					if input.UserInputState == Enum.UserInputState.End then
 						dragging = false
-						if changedConn then
-							changedConn:Disconnect()
-							changedConn = nil
-						end
 					end
 				end)
 			end
 		end)
 
 		frame.InputChanged:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			if input.UserInputType == Enum.UserInputType.MouseMovement then
 				dragInput = input
 			end
 		end)
 
 		input.InputChanged:Connect(function(input)
 			if input == dragInput and dragging then
-				updateInput(input)
+				local delta = input.Position - mousePos
+				parent.Position  = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
 			end
 		end)
-
-		if typeof(game) == "Instance" and game:GetService("UserInputService") then
-			local UserInputService = game:GetService("UserInputService")
-			UserInputService.TouchMoved:Connect(function(touch, processed)
-				if dragging and dragInput and touch == dragInput then
-					updateInput(touch)
-				end
-			end)
-			UserInputService.TouchEnded:Connect(function(touch, processed)
-				if dragging and dragInput and touch == dragInput then
-					dragging = false
-					dragInput = nil
-				end
-			end)
-		end
 
 	end
 	
